@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  analytics-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: etl-analytics-dashboard:latest
+    container_name: etl_dashboard
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+    restart: unless-stopped

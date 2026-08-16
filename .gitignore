@@ -1,0 +1,23 @@
+# Exclude raw generated CSV datasets (large files)
+customers.csv
+orders.csv
+products.csv
+
+# Keep warehouse star schema tables and data snapshot for deployment
+!dim_customers.csv
+!dim_products.csv
+!fact_sales.csv
+!data.json
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment secrets
+.env
+.env.*
+.git-credentials
+.netrc
+.pypirc

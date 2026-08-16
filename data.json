@@ -1,0 +1,144 @@
+{
+  "status": "success",
+  "source": "static_snapshot",
+  "generated_at": "2026-08-16T08:30:00",
+  "metrics": {
+    "total_revenue": 2486159.28,
+    "total_orders": 5000,
+    "total_customers": 493,
+    "avg_order_value": 497.23
+  },
+  "category_sales": {
+    "Electronics": 1084250.45,
+    "Clothing": 421890.12,
+    "Home & Kitchen": 512340.60,
+    "Beauty": 245120.35,
+    "Sports & Outdoors": 222557.76
+  },
+  "monthly_sales": {
+    "2024-01": 89400.50,
+    "2024-02": 94210.20,
+    "2024-03": 105430.80,
+    "2024-04": 112340.10,
+    "2024-05": 118920.00,
+    "2024-06": 124500.40,
+    "2024-07": 131200.90,
+    "2024-08": 138450.30,
+    "2024-09": 142100.80,
+    "2024-10": 156780.20,
+    "2024-11": 189450.60,
+    "2024-12": 210340.90,
+    "2025-01": 145600.20,
+    "2025-02": 152340.10,
+    "2025-03": 164800.50,
+    "2025-04": 172900.80,
+    "2025-05": 181200.40,
+    "2025-06": 194500.70
+  },
+  "monthly_signups": {
+    "2023-01": 42,
+    "2023-02": 38,
+    "2023-03": 45,
+    "2023-04": 50,
+    "2023-05": 41,
+    "2023-06": 48,
+    "2023-07": 53,
+    "2023-08": 49,
+    "2023-09": 56,
+    "2023-10": 60,
+    "2023-11": 65,
+    "2023-12": 72
+  },
+  "recent_transactions": [
+    {
+      "order_id": "O04998",
+      "customer_name": "Danielle Johnson",
+      "product_name": "VisionPro 4K Monitor",
+      "category": "Electronics",
+      "quantity": 1,
+      "item_total": 205.99,
+      "order_date": "2026-05-18 14:22"
+    },
+    {
+      "order_id": "O04995",
+      "customer_name": "Erica Mcclain",
+      "product_name": "QuantumSound Wireless Headphones",
+      "category": "Electronics",
+      "quantity": 2,
+      "item_total": 691.98,
+      "order_date": "2026-05-18 11:05"
+    },
+    {
+      "order_id": "O04991",
+      "customer_name": "Jesse Guzman",
+      "product_name": "UrbanStretch Denim Jeans",
+      "category": "Clothing",
+      "quantity": 3,
+      "item_total": 302.97,
+      "order_date": "2026-05-17 21:40"
+    },
+    {
+      "order_id": "O04987",
+      "customer_name": "Robert Cole",
+      "product_name": "Titanium-X Smart Watch",
+      "category": "Electronics",
+      "quantity": 1,
+      "item_total": 281.99,
+      "order_date": "2026-05-17 18:15"
+    },
+    {
+      "order_id": "O04982",
+      "customer_name": "Joshua Lewis",
+      "product_name": "Apex Router Wi-Fi 6",
+      "category": "Electronics",
+      "quantity": 1,
+      "item_total": 402.99,
+      "order_date": "2026-05-17 13:50"
+    },
+    {
+      "order_id": "O04979",
+      "customer_name": "Donna Mejia",
+      "product_name": "ThermaLoft Puffer Jacket",
+      "category": "Clothing",
+      "quantity": 2,
+      "item_total": 141.98,
+      "order_date": "2026-05-16 22:30"
+    },
+    {
+      "order_id": "O04975",
+      "customer_name": "Sharon Wong",
+      "product_name": "LunaBeam Portable Projector",
+      "category": "Electronics",
+      "quantity": 1,
+      "item_total": 429.99,
+      "order_date": "2026-05-16 19:12"
+    },
+    {
+      "order_id": "O04970",
+      "customer_name": "Steven Nelson",
+      "product_name": "NovaFit Fitness Tracker",
+      "category": "Electronics",
+      "quantity": 2,
+      "item_total": 185.98,
+      "order_date": "2026-05-16 14:05"
+    },
+    {
+      "order_id": "O04966",
+      "customer_name": "Kimberly Perez",
+      "product_name": "VoltDock Charging Station",
+      "category": "Electronics",
+      "quantity": 1,
+      "item_total": 100.99,
+      "order_date": "2026-05-15 20:45"
+    },
+    {
+      "order_id": "O04961",
+      "customer_name": "Jose Richards",
+      "product_name": "WindShield Active Windbreaker",
+      "category": "Clothing",
+      "quantity": 1,
+      "item_total": 114.99,
+      "order_date": "2026-05-15 16:30"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+# Core Data Warehouse, ETL, and Analytics Dashboard Dependencies
+pandas>=2.0.0
+numpy>=1.24.0
+Faker>=18.0.0
+
+# Optional Cloud Data Warehouse Connectors (Uncomment if using load_to_dw.py in cloud)
+# google-cloud-bigquery>=3.10.0
+# boto3>=1.28.0

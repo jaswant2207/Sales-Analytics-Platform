@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""
+Data Exporter for Analytics Dashboard
+Extracts aggregated metrics and transactions from the star schema warehouse CSVs
+and exports them to `data.json` for static hosting (GitHub Pages, Vercel, Netlify).
+"""
+
+import json
+import os
+import sys
+
+DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+
+def ensure_data_exists():
+    """Checks if cleaned star schema files exist, otherwise runs generator and ETL."""
+    cust_path = os.path.join(DIRECTORY, 'dim_customers.csv')
+    prod_path = os.path.join(DIRECTORY, 'dim_products.csv')
+    sales_path = os.path.join(DIRECTORY, 'fact_sales.csv')
+
+    if not (os.path.exists(cust_path) and os.path.exists(prod_path) and os.path.exists(sales_path)):
+        print("[INFO] Cleaned warehouse CSVs not found. Auto-bootstrapping data...")
+        
+        # Check raw CSVs
+        raw_cust = os.path.join(DIRECTORY, 'customers.csv')
+        if not os.path.exists(raw_cust):
+            print("[INFO] Generating synthetic e-commerce data...")
+            import generate_data
+            generate_data.main()
+        
+        print("[INFO] Running ETL process to build star schema tables...")
+        import etl_process
+        etl_process.main()
+
+def generate_analytics_payload():
+    """Processes warehouse CSVs into a structured JSON payload for the dashboard."""
+    import pandas as pd
+
+    customers_path = os.path.join(DIRECTORY, 'dim_customers.csv')
+    products_path = os.path.join(DIRECTORY, 'dim_products.csv')
+    sales_path = os.path.join(DIRECTORY, 'fact_sales.csv')
+
+    # Load CSVs
+    df_cust = pd.read_csv(customers_path)
+    df_prod = pd.read_csv(products_path)
+    df_sales = pd.read_csv(sales_path)
+
+    # Ensure proper data types
+    df_sales['item_total'] = pd.to_numeric(df_sales['item_total'], errors='coerce')
+    df_sales['order_date'] = pd.to_datetime(df_sales['order_date'], errors='coerce')
+    df_cust['signup_date'] = pd.to_datetime(df_cust['signup_date'], errors='coerce')
+
+    # Calculate Core KPI Metrics
+    total_revenue = float(df_sales['item_total'].sum())
+    total_orders = int(df_sales['order_id'].nunique())
+    total_customers = int(df_cust['customer_id'].nunique())
+    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0.0
+
+    # Sales by Category
+    df_joined = df_sales.merge(df_prod, on='product_id', how='inner')
+    category_sales = df_joined.groupby('category')['item_total'].sum().round(2).to_dict()
+
+    # Monthly Sales Trend
+    df_sales['month'] = df_sales['order_date'].dt.to_period('M').astype(str)
+    monthly_sales = df_sales.groupby('month')['item_total'].sum().round(2).sort_index().to_dict()
+
+    # Monthly Signups Trend
+    df_cust['month'] = df_cust['signup_date'].dt.to_period('M').astype(str)
+    monthly_signups = df_cust.groupby('month').size().sort_index().to_dict()
+
+    # Recent Transactions (Last 10 records)
+    recent_df = df_sales.sort_values(by='order_date', ascending=False).head(10)
+    recent_joined = recent_df.merge(df_prod, on='product_id', how='left').merge(df_cust, on='customer_id', how='left')
+    recent_transactions = []
+    for _, row in recent_joined.iterrows():
+        recent_transactions.append({
+            'order_id': str(row['order_id']),
+            'customer_name': str(row['name']) if not pd.isna(row['name']) else 'Unknown',
+            'product_name': str(row['product_name']) if not pd.isna(row['product_name']) else 'Unknown Product',
+            'category': str(row['category']) if not pd.isna(row['category']) else 'General',
+            'quantity': int(row['quantity']) if not pd.isna(row['quantity']) else 1,
+            'item_total': float(row['item_total']) if not pd.isna(row['item_total']) else 0.0,
+            'order_date': row['order_date'].strftime('%Y-%m-%d %H:%M') if not pd.isna(row['order_date']) else ''
+        })
+
+    payload = {
+        'status': 'success',
+        'generated_at': str(pd.Timestamp.now()),
+        'metrics': {
+            'total_revenue': round(total_revenue, 2),
+            'total_orders': total_orders,
+            'total_customers': total_customers,
+            'avg_order_value': round(avg_order_value, 2)
+        },
+        'category_sales': category_sales,
+        'monthly_sales': monthly_sales,
+        'monthly_signups': monthly_signups,
+        'recent_transactions': recent_transactions
+    }
+    return payload
+
+def main():
+    ensure_data_exists()
+    payload = generate_analytics_payload()
+    output_path = os.path.join(DIRECTORY, 'data.json')
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, indent=2)
+    print(f"[SUCCESS] Exported analytics data snapshot to: {output_path}")
+
+if __name__ == '__main__':
+    main()

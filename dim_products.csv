@@ -1,0 +1,51 @@
+product_id,product_name,category,price
+P01,QuantumSound Wireless Headphones,Electronics,345.99
+P02,AeroCharge Power Bank,Electronics,226.99
+P03,VisionPro 4K Monitor,Electronics,205.99
+P04,Titanium-X Smart Watch,Electronics,281.99
+P05,LunaBeam Portable Projector,Electronics,429.99
+P06,Apex Router Wi-Fi 6,Electronics,402.99
+P07,SoundWave Bluetooth Speaker,Electronics,366.99
+P08,VoltDock Charging Station,Electronics,100.99
+P09,ClearVoice USB Microphone,Electronics,34.99
+P10,NovaFit Fitness Tracker,Electronics,92.99
+P11,EcoSoft Organic Cotton T-Shirt,Clothing,91.99
+P12,UrbanStretch Denim Jeans,Clothing,100.99
+P13,WindShield Active Windbreaker,Clothing,114.99
+P14,ThermaLoft Puffer Jacket,Clothing,70.99
+P15,BreezeWalk Running Socks,Clothing,18.99
+P16,SummitFit Athletic Hoodie,Clothing,30.99
+P17,ClassicFit Chino Pants,Clothing,22.99
+P18,MerinoComfort Wool Sweater,Clothing,44.99
+P19,DryLite Training Shorts,Clothing,113.99
+P20,AllWeather Waterproof Gloves,Clothing,96.99
+P21,ChefPrecision Knife Set,Home & Kitchen,196.99
+P22,BaristaBlend Espresso Machine,Home & Kitchen,194.99
+P23,PureAir HEPA Purifier,Home & Kitchen,205.99
+P24,FlexSpatula Silicone Set,Home & Kitchen,299.99
+P25,EmberGlow Scented Candle,Home & Kitchen,25.99
+P26,HydroFlow Water Filter,Home & Kitchen,87.99
+P27,SmartCook Air Fryer,Home & Kitchen,239.99
+P28,BambooSleep Bed Pillows,Home & Kitchen,198.99
+P29,ThermalShield Travel Mug,Home & Kitchen,199.99
+P30,EcoClean Robot Vacuum,Home & Kitchen,236.99
+P31,HydroGlow Hyaluronic Serum,Beauty,16.99
+P32,VelvetMatte Liquid Lipstick,Beauty,24.99
+P33,ClayPure Detoxifying Mask,Beauty,74.99
+P34,SilkRadiance Face Oil,Beauty,53.99
+P35,SatinFinish Setting Powder,Beauty,57.99
+P36,CocoaButter Hand Cream,Beauty,47.99
+P37,HerbalShine Volumizing Shampoo,Beauty,42.99
+P38,RoseDew Facial Toner,Beauty,38.99
+P39,SunShield SPF 50 Sunscreen,Beauty,21.99
+P40,CharcoalGlow Whitening Toothpaste,Beauty,10.99
+P41,TrailBlazer Hiking Backpack,Sports & Outdoors,199.99
+P42,HydroSip Insulated Flask,Sports & Outdoors,58.99
+P43,FlexFoam Yoga Mat,Sports & Outdoors,138.99
+P44,CampComfort Sleeping Bag,Sports & Outdoors,143.99
+P45,AeroSpoke Bicycle Pump,Sports & Outdoors,110.99
+P46,PeakGrab Climbing Chalk Bag,Sports & Outdoors,154.99
+P47,TrekPole Carbon Trekking Poles,Sports & Outdoors,41.99
+P48,AquaGlide Swim Goggles,Sports & Outdoors,78.99
+P49,SunBlocker Beach Tent,Sports & Outdoors,77.99
+P50,SpeedStride Resistance Bands,Sports & Outdoors,191.99

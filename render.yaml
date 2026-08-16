@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: etl-analytics-dashboard
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python export_data.py
+    startCommand: python dashboard.py
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8000

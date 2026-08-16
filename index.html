@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETL Data Warehouse Analytics Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.15);
+            --purple: #8b5cf6;
+            --purple-glow: rgba(139, 92, 246, 0.15);
+            --amber: #f59e0b;
+            --border-color: #334155;
+            --card-hover-border: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-color);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #94a3b8;
+            box-shadow: 0 0 8px rgba(148, 163, 184, 0.5);
+        }
+
+        .status-dot.live {
+            background-color: var(--accent);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+        }
+
+        .status-dot.static {
+            background-color: var(--primary);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+        }
+
+        .btn-refresh {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-refresh:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .kpi-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--card-accent, var(--primary));
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--card-hover-border);
+            box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .kpi-title {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            font-feature-settings: "tnum";
+        }
+
+        .kpi-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        /* Chart Grid Layout */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.75rem;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 280px;
+        }
+
+        /* Table Card */
+        .table-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.75rem;
+            overflow-x: auto;
+        }
+
+        .table-card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .recent-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .recent-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .recent-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            font-size: 0.9375rem;
+        }
+
+        .recent-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .recent-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-category {
+            background-color: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        /* Loading & Error States */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .error-message h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Full-screen Loading Overlay -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: var(--text-secondary); font-weight: 500;">Loading Analytics Warehouse Data...</p>
+    </div>
+
+    <div class="container">
+        <!-- Top Navigation Header -->
+        <header>
+            <div class="header-title">
+                <h1>ETL Data Warehouse Analytics</h1>
+                <p>Real-time analytics and KPI metrics powered by the clean star schema data pipeline.</p>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge" id="status-badge">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Connecting...</span>
+                </div>
+                <button class="btn-refresh" id="btn-refresh">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    Refresh Data
+                </button>
+            </div>
+        </header>
+
+        <!-- Error Alert -->
+        <div class="error-message" id="error-alert">
+            <h3>Pipeline Connection Error</h3>
+            <p id="error-text">Failed to fetch analytical datasets. Please make sure the backend server is running or data.json is available.</p>
+        </div>
+
+        <!-- KPI Section -->
+        <div class="kpi-grid">
+            <div class="kpi-card" style="--card-accent: var(--primary);">
+                <span class="kpi-title">Total Revenue</span>
+                <span class="kpi-value" id="kpi-revenue">$0.00</span>
+                <span class="kpi-desc">Combined sales across all product categories</span>
+            </div>
+            <div class="kpi-card" style="--card-accent: var(--accent);">
+                <span class="kpi-title">Total Orders</span>
+                <span class="kpi-value" id="kpi-orders">0</span>
+                <span class="kpi-desc">Number of unique completed orders</span>
+            </div>
+            <div class="kpi-card" style="--card-accent: var(--purple);">
+                <span class="kpi-title">Active Customers</span>
+                <span class="kpi-value" id="kpi-customers">0</span>
+                <span class="kpi-desc">Verified unique signup profiles</span>
+            </div>
+            <div class="kpi-card" style="--card-accent: var(--amber);">
+                <span class="kpi-title">Avg Order Value</span>
+                <span class="kpi-value" id="kpi-aov">$0.00</span>
+                <span class="kpi-desc">Average purchase value per order</span>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                    Revenue Trend by Month
+                </h2>
+                <div class="chart-container">
+                    <canvas id="salesTrendChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                    Sales by Category
+                </h2>
+                <div class="chart-container">
+                    <canvas id="categorySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="table-card">
+            <h2>Recent Sales Transactions</h2>
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Name</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Order Date</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-body">
+                    <!-- Data dynamically loaded -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let salesChart = null;
+        let categoryChart = null;
+
+        async function fetchAnalyticsData() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            document.getElementById('error-alert').style.display = 'none';
+
+            let data = null;
+            let dataSource = 'live';
+
+            // Attempt 1: Fetch from live Python backend API
+            try {
+                const response = await fetch('/api/data', { cache: 'no-store' });
+                if (response.ok) {
+                    const json = await response.json();
+                    if (!json.error) {
+                        data = json;
+                        dataSource = 'live';
+                    }
+                }
+            } catch (err) {
+                // Live backend not reachable, proceed to static fallback
+            }
+
+            // Attempt 2: Fallback to static data.json (for GitHub Pages / Vercel / Netlify static hosting)
+            if (!data) {
+                try {
+                    const fallbackResponse = await fetch('./data.json', { cache: 'no-store' });
+                    if (fallbackResponse.ok) {
+                        const json = await fallbackResponse.json();
+                        if (!json.error) {
+                            data = json;
+                            dataSource = 'static';
+                        }
+                    }
+                } catch (fallbackErr) {
+                    // Static fallback failed
+                }
+            }
+
+            if (!data) {
+                showError('Could not connect to dashboard API or find data.json. Ensure dashboard.py is running or run `python export_data.py`.');
+                return;
+            }
+
+            // Update Status Badge
+            updateStatusBadge(dataSource);
+
+            // Populate Views
+            populateKPIs(data.metrics);
+            renderCharts(data);
+            populateTable(data.recent_transactions);
+
+            // Fade out loader
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }, 300);
+        }
+
+        function updateStatusBadge(source) {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            if (source === 'live') {
+                dot.className = 'status-dot live';
+                text.innerText = 'Live API Server';
+                text.title = 'Connected to Python Data Warehouse backend';
+            } else {
+                dot.className = 'status-dot static';
+                text.innerText = 'Static Snapshot';
+                text.title = 'Serving static data.json snapshot';
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('error-text').innerText = msg;
+            document.getElementById('error-alert').style.display = 'block';
+            
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            dot.className = 'status-dot';
+            text.innerText = 'Disconnected';
+        }
+
+        function populateKPIs(metrics) {
+            document.getElementById('kpi-revenue').innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.total_revenue || 0);
+            document.getElementById('kpi-orders').innerText = new Intl.NumberFormat('en-US').format(metrics.total_orders || 0);
+            document.getElementById('kpi-customers').innerText = new Intl.NumberFormat('en-US').format(metrics.total_customers || 0);
+            document.getElementById('kpi-aov').innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(metrics.avg_order_value || 0);
+        }
+
+        function renderCharts(data) {
+            // 1. Sales Trend Line Chart
+            const salesTrendCtx = document.getElementById('salesTrendChart').getContext('2d');
+            const salesLabels = Object.keys(data.monthly_sales || {});
+            const salesValues = Object.values(data.monthly_sales || {});
+
+            if (salesChart) salesChart.destroy();
+            salesChart = new Chart(salesTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: salesLabels,
+                    datasets: [{
+                        label: 'Monthly Revenue ($)',
+                        data: salesValues,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { 
+                                color: '#94a3b8',
+                                callback: function(value) { return '$' + value.toLocaleString(); }
+                            }
+                        },
+                        x: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+
+            // 2. Category Donut Chart
+            const categoryCtx = document.getElementById('categorySalesChart').getContext('2d');
+            const catLabels = Object.keys(data.category_sales || {});
+            const catValues = Object.values(data.category_sales || {});
+
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catValues,
+                        backgroundColor: [
+                            '#3b82f6', // blue
+                            '#10b981', // green
+                            '#8b5cf6', // purple
+                            '#f59e0b', // amber
+                            '#ec4899'  // pink
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#1e293b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#f8fafc',
+                                font: { family: 'Outfit', size: 12 },
+                                padding: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: $${context.parsed.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateTable(transactions) {
+            const tbody = document.getElementById('transactions-body');
+            tbody.innerHTML = '';
+
+            if (!transactions || transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No transaction records available</td></tr>';
+                return;
+            }
+
+            transactions.forEach(tx => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: #60a5fa;">${tx.order_id}</td>
+                    <td>${tx.customer_name}</td>
+                    <td>${tx.product_name}</td>
+                    <td><span class="badge badge-category">${tx.category}</span></td>
+                    <td>${tx.quantity}</td>
+                    <td style="font-weight: 600; color: #10b981;">$${Number(tx.item_total).toFixed(2)}</td>
+                    <td style="color: var(--text-secondary);">${tx.order_date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('btn-refresh').addEventListener('click', fetchAnalyticsData);
+
+        // Initial Load
+        window.addEventListener('DOMContentLoaded', fetchAnalyticsData);
+    </script>
+</body>
+</html>
