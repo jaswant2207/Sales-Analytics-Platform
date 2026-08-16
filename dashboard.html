@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="cyberpunk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,31 +12,127 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
+        /* ================= THEME COLOR PALETTES ================= */
+        :root, [data-theme="cyberpunk"] {
             --bg-base: #0a0f1d;
             --bg-surface: #111827;
             --card-bg: rgba(17, 24, 39, 0.85);
             --card-border: rgba(255, 255, 255, 0.08);
-            --card-hover-border: rgba(99, 102, 241, 0.4);
+            --card-hover-border: rgba(99, 102, 241, 0.45);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
             
             --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.25);
+            --primary-glow: rgba(99, 102, 241, 0.3);
+            --accent-gradient: linear-gradient(135deg, #6366f1, #06b6d4);
             --cyan: #06b6d4;
-            --cyan-glow: rgba(6, 182, 212, 0.2);
             --emerald: #10b981;
-            --emerald-glow: rgba(16, 185, 129, 0.2);
             --purple: #8b5cf6;
             --amber: #f59e0b;
             --rose: #f43f5e;
+            --chart-glow: rgba(99, 102, 241, 0.25);
+            --bg-gradient-1: rgba(99, 102, 241, 0.08);
+            --bg-gradient-2: rgba(6, 182, 212, 0.06);
+        }
+
+        [data-theme="emerald"] {
+            --bg-base: #061412;
+            --bg-surface: #0b221e;
+            --card-bg: rgba(11, 34, 30, 0.85);
+            --card-border: rgba(16, 185, 129, 0.15);
+            --card-hover-border: rgba(16, 185, 129, 0.5);
+            --text-primary: #f0fdf4;
+            --text-secondary: #a7f3d0;
+            --text-muted: #4ade80;
+            
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.35);
+            --accent-gradient: linear-gradient(135deg, #10b981, #06b6d4);
+            --cyan: #14b8a6;
+            --emerald: #10b981;
+            --purple: #34d399;
+            --amber: #fbbf24;
+            --rose: #f87171;
+            --chart-glow: rgba(16, 185, 129, 0.25);
+            --bg-gradient-1: rgba(16, 185, 129, 0.1);
+            --bg-gradient-2: rgba(20, 184, 166, 0.08);
+        }
+
+        [data-theme="purple"] {
+            --bg-base: #0f0a1c;
+            --bg-surface: #1a1030;
+            --card-bg: rgba(26, 16, 48, 0.85);
+            --card-border: rgba(168, 85, 247, 0.15);
+            --card-hover-border: rgba(168, 85, 247, 0.5);
+            --text-primary: #faf5ff;
+            --text-secondary: #d8b4fe;
+            --text-muted: #a855f7;
+            
+            --primary: #a855f7;
+            --primary-glow: rgba(168, 85, 247, 0.35);
+            --accent-gradient: linear-gradient(135deg, #a855f7, #ec4899);
+            --cyan: #c084fc;
+            --emerald: #34d399;
+            --purple: #a855f7;
+            --amber: #fbbf24;
+            --rose: #ec4899;
+            --chart-glow: rgba(168, 85, 247, 0.25);
+            --bg-gradient-1: rgba(168, 85, 247, 0.1);
+            --bg-gradient-2: rgba(236, 72, 153, 0.08);
+        }
+
+        [data-theme="sunset"] {
+            --bg-base: #180e0e;
+            --bg-surface: #261414;
+            --card-bg: rgba(38, 20, 20, 0.85);
+            --card-border: rgba(249, 115, 22, 0.15);
+            --card-hover-border: rgba(249, 115, 22, 0.5);
+            --text-primary: #fff7ed;
+            --text-secondary: #fdba74;
+            --text-muted: #fb923c;
+            
+            --primary: #f97316;
+            --primary-glow: rgba(249, 115, 22, 0.35);
+            --accent-gradient: linear-gradient(135deg, #f97316, #ef4444);
+            --cyan: #fb923c;
+            --emerald: #10b981;
+            --purple: #f43f5e;
+            --amber: #f59e0b;
+            --rose: #ef4444;
+            --chart-glow: rgba(249, 115, 22, 0.25);
+            --bg-gradient-1: rgba(249, 115, 22, 0.1);
+            --bg-gradient-2: rgba(239, 68, 68, 0.08);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --card-bg: #ffffff;
+            --card-border: rgba(0, 0, 0, 0.08);
+            --card-hover-border: rgba(99, 102, 241, 0.4);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            --primary: #4f46e5;
+            --primary-glow: rgba(79, 70, 229, 0.15);
+            --accent-gradient: linear-gradient(135deg, #4f46e5, #0284c7);
+            --cyan: #0284c7;
+            --emerald: #059669;
+            --purple: #7c3aed;
+            --amber: #d97706;
+            --rose: #e11d48;
+            --chart-glow: rgba(79, 70, 229, 0.15);
+            --bg-gradient-1: rgba(79, 70, 229, 0.04);
+            --bg-gradient-2: rgba(2, 132, 199, 0.04);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
         body {
@@ -47,8 +143,8 @@
             padding: 1.5rem 2rem;
             line-height: 1.5;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, var(--bg-gradient-1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, var(--bg-gradient-2) 0%, transparent 40%);
         }
 
         .container {
@@ -78,19 +174,19 @@
             width: 48px;
             height: 48px;
             border-radius: 12px;
-            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            background: var(--accent-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 20px var(--primary-glow);
         }
 
         .brand-text h1 {
             font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: -0.02em;
-            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -104,13 +200,13 @@
         }
 
         .developer-badge {
-            background: rgba(99, 102, 241, 0.15);
-            color: #a5b4fc;
+            background: var(--primary-glow);
+            color: var(--primary);
             padding: 2px 8px;
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 600;
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            border: 1px solid var(--card-border);
         }
 
         .header-actions {
@@ -118,6 +214,39 @@
             align-items: center;
             gap: 0.75rem;
             flex-wrap: wrap;
+        }
+
+        /* Theme Selector Dropdown */
+        .theme-selector-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+        }
+
+        .theme-selector-box label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .theme-select {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .theme-select option {
+            background: var(--bg-surface);
+            color: var(--text-primary);
         }
 
         .status-pill {
@@ -130,15 +259,15 @@
             font-weight: 500;
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #34d399;
+            color: var(--emerald);
         }
 
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: #10b981;
-            box-shadow: 0 0 8px #10b981;
+            background-color: var(--emerald);
+            box-shadow: 0 0 8px var(--emerald);
             animation: pulse 2s infinite;
         }
 
@@ -171,13 +300,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            background: var(--accent-gradient);
             border: none;
             box-shadow: 0 4px 12px var(--primary-glow);
+            color: #ffffff !important;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, #4f46e5, #4338ca);
             box-shadow: 0 6px 18px var(--primary-glow);
         }
 
@@ -215,8 +344,8 @@
 
         .tab-btn.active {
             color: #ffffff;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.4);
+            background: var(--primary-glow);
+            border: 1px solid var(--primary);
             box-shadow: 0 0 12px var(--primary-glow);
         }
 
@@ -264,7 +393,7 @@
         }
 
         select.filter-select {
-            background: #1e293b;
+            background: var(--bg-surface);
             border: 1px solid var(--card-border);
             color: var(--text-primary);
             padding: 0.45rem 0.9rem;
@@ -301,7 +430,7 @@
         .kpi-card:hover {
             transform: translateY(-3px);
             border-color: var(--card-hover-border);
-            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.4);
         }
 
         .kpi-card::before {
@@ -335,13 +464,13 @@
             padding: 2px 6px;
             border-radius: 4px;
             background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
+            color: var(--emerald);
         }
 
         .kpi-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #ffffff;
+            color: var(--text-primary);
             margin-bottom: 0.25rem;
             font-feature-settings: "tnum";
         }
@@ -383,7 +512,7 @@
         .card-title {
             font-size: 1.1rem;
             font-weight: 600;
-            color: #ffffff;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -429,12 +558,12 @@
         }
 
         .badge-category {
-            background: rgba(99, 102, 241, 0.15);
-            color: #a5b4fc;
+            background: var(--primary-glow);
+            color: var(--primary);
             padding: 3px 8px;
             border-radius: 6px;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         /* RFM Grid */
@@ -456,7 +585,7 @@
 
         .rfm-card:hover, .rfm-card.active {
             border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.08);
+            background: var(--primary-glow);
             transform: translateY(-2px);
         }
 
@@ -481,12 +610,12 @@
         }
 
         .rfm-action-box {
-            background: rgba(6, 182, 212, 0.08);
-            border-left: 3px solid var(--cyan);
+            background: var(--primary-glow);
+            border-left: 3px solid var(--primary);
             padding: 0.6rem 0.8rem;
             border-radius: 0 6px 6px 0;
             font-size: 0.8rem;
-            color: #a5f3fc;
+            color: var(--text-secondary);
             margin-top: 0.75rem;
         }
 
@@ -503,7 +632,7 @@
         }
 
         .schema-box {
-            background: rgba(15, 23, 42, 0.95);
+            background: var(--bg-surface);
             border: 1px solid var(--card-border);
             border-radius: 10px;
             padding: 1.25rem;
@@ -513,7 +642,7 @@
         .schema-box h3 {
             font-family: 'Outfit', sans-serif;
             font-size: 1rem;
-            color: #60a5fa;
+            color: var(--cyan);
             margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
@@ -531,26 +660,26 @@
 
         .schema-field .type { color: #f472b6; }
         .schema-field .pk { color: #facc15; font-weight: bold; }
-        .schema-field .fk { color: #34d399; font-weight: bold; }
+        .schema-field .fk { color: var(--emerald); font-weight: bold; }
 
         /* SQL Sandbox */
         .sql-viewer {
-            background: #0f172a;
+            background: var(--bg-surface);
             border: 1px solid var(--card-border);
             border-radius: 10px;
             padding: 1.25rem;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
-            color: #e2e8f0;
+            color: var(--text-primary);
             overflow-x: auto;
             line-height: 1.6;
             margin-bottom: 1rem;
         }
 
-        .sql-keyword { color: #38bdf8; font-weight: 600; }
+        .sql-keyword { color: var(--cyan); font-weight: 600; }
         .sql-func { color: #f472b6; }
         .sql-string { color: #a3e635; }
-        .sql-comment { color: #64748b; font-style: italic; }
+        .sql-comment { color: var(--text-muted); font-style: italic; }
 
         /* Footer */
         footer {
@@ -582,12 +711,24 @@
                 </div>
             </div>
             <div class="header-actions">
+                <!-- Live Theme Palette Selector -->
+                <div class="theme-selector-box">
+                    <label for="themeSelect">🎨 Theme:</label>
+                    <select id="themeSelect" class="theme-select" onchange="changeTheme(this.value)">
+                        <option value="cyberpunk">🌌 Cyberpunk Indigo</option>
+                        <option value="emerald">🟢 Emerald Fintech</option>
+                        <option value="purple">🟣 Royal Violet</option>
+                        <option value="sunset">🌅 Sunset Ember</option>
+                        <option value="light">☀️ Executive Light</option>
+                    </select>
+                </div>
+
                 <div class="status-pill" id="status-pill">
                     <span class="status-dot"></span>
-                    <span id="status-text">Cloud Warehouse Active (Direct)</span>
+                    <span id="status-text">Warehouse Active</span>
                 </div>
                 <button class="btn" id="btn-export-csv" onclick="exportSummaryCSV()">
-                    📥 Export CSV Report
+                    📥 Export CSV
                 </button>
                 <a href="https://github.com/jaswant2207/Sales-Analytics-Platform" target="_blank" class="btn btn-primary">
                     ⭐ GitHub Repo
@@ -640,7 +781,7 @@
 
             <!-- KPI Cards -->
             <div class="kpi-grid">
-                <div class="kpi-card" style="--accent-color: #6366f1;">
+                <div class="kpi-card" style="--accent-color: var(--primary);">
                     <div class="kpi-header">
                         <span class="kpi-title">Total Revenue</span>
                         <span class="kpi-badge">+18.4% YoY</span>
@@ -649,7 +790,7 @@
                     <div class="kpi-desc">Total gross revenue from verified transactions</div>
                 </div>
 
-                <div class="kpi-card" style="--accent-color: #06b6d4;">
+                <div class="kpi-card" style="--accent-color: var(--cyan);">
                     <div class="kpi-header">
                         <span class="kpi-title">Total Orders Placed</span>
                         <span class="kpi-badge">8,000 Records</span>
@@ -658,7 +799,7 @@
                     <div class="kpi-desc">Distinct validated order IDs in warehouse</div>
                 </div>
 
-                <div class="kpi-card" style="--accent-color: #10b981;">
+                <div class="kpi-card" style="--accent-color: var(--emerald);">
                     <div class="kpi-header">
                         <span class="kpi-title">Active Customers</span>
                         <span class="kpi-badge">98.6% Retained</span>
@@ -667,7 +808,7 @@
                     <div class="kpi-desc">Deduplicated customer dimension profiles</div>
                 </div>
 
-                <div class="kpi-card" style="--accent-color: #f59e0b;">
+                <div class="kpi-card" style="--accent-color: var(--amber);">
                     <div class="kpi-header">
                         <span class="kpi-title">Avg Order Value (AOV)</span>
                         <span class="kpi-badge">$497.23</span>
@@ -745,7 +886,7 @@
                             <span class="rfm-title">🏆 Champions</span>
                             <span class="rfm-score-tag">R: 4-5 | F: 4-5 | M: 4-5</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #38bdf8;">142 Customers</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--cyan);">142 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $7,420 • Recency: < 15 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> VIP loyalty perks, early access to new product releases, brand ambassador invitations.
@@ -757,7 +898,7 @@
                             <span class="rfm-title">💎 Loyal Customers</span>
                             <span class="rfm-score-tag">R: 3-5 | F: 3-5 | M: 3-5</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #34d399;">186 Customers</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--emerald);">186 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $4,850 • Recency: < 45 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Upsell higher-value bundles, tiered discount incentives, cross-sell related categories.
@@ -769,7 +910,7 @@
                             <span class="rfm-title">🌱 New & Promising</span>
                             <span class="rfm-score-tag">R: 4-5 | F: 1-2 | M: 1-3</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #a78bfa;">68 Customers</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--purple);">68 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $1,240 • Recency: < 20 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Automated onboarding email drip, 2nd purchase coupon, product usage guides.
@@ -781,7 +922,7 @@
                             <span class="rfm-title">⚠️ At Risk / Inactive</span>
                             <span class="rfm-score-tag">R: 1-2 | F: 3-5 | M: 3-5</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">54 Customers</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--amber);">54 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $3,610 • Recency: > 90 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Personalized win-back email campaign with limited-time 20% discount offer.
@@ -793,7 +934,7 @@
                             <span class="rfm-title">💤 Lost Customers</span>
                             <span class="rfm-score-tag">R: 1-2 | F: 1-2 | M: 1-2</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #f43f5e;">43 Customers</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--rose);">43 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $480 • Recency: > 180 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Reactivation survey to discover churn reasons; aggressive clearance promotions.
@@ -802,7 +943,7 @@
                 </div>
 
                 <div class="charts-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="card" style="background: rgba(15, 23, 42, 0.6);">
+                    <div class="card" style="background: var(--card-bg);">
                         <div class="card-header">
                             <h2 class="card-title">👥 Customer Segment Distribution</h2>
                         </div>
@@ -810,7 +951,7 @@
                             <canvas id="rfmSegmentChart"></canvas>
                         </div>
                     </div>
-                    <div class="card" style="background: rgba(15, 23, 42, 0.6);">
+                    <div class="card" style="background: var(--card-bg);">
                         <div class="card-header">
                             <h2 class="card-title">💰 Total Monetary Contribution by Segment</h2>
                         </div>
@@ -847,8 +988,8 @@
                     </div>
 
                     <!-- Fact Sales -->
-                    <div class="schema-box" style="border-color: #6366f1; box-shadow: 0 0 16px rgba(99, 102, 241, 0.2);">
-                        <h3 style="color: #a5b4fc;">⚡ fact_sales (Fact Table)</h3>
+                    <div class="schema-box" style="border-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);">
+                        <h3 style="color: var(--cyan);">⚡ fact_sales (Fact Table)</h3>
                         <div class="schema-field"><span>order_id</span><span class="pk">PK (VARCHAR)</span></div>
                         <div class="schema-field"><span>customer_id</span><span class="fk">FK (VARCHAR)</span></div>
                         <div class="schema-field"><span>product_id</span><span class="fk">FK (VARCHAR)</span></div>
@@ -870,7 +1011,7 @@
                 </div>
 
                 <div style="background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
-                    <h4 style="font-size: 0.9rem; color: #38bdf8; margin-bottom: 0.5rem;">⚙️ Cloud Optimization Specs:</h4>
+                    <h4 style="font-size: 0.9rem; color: var(--cyan); margin-bottom: 0.5rem;">⚙️ Cloud Optimization Specs:</h4>
                     <ul style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.7;">
                         <li><strong>Google BigQuery:</strong> <code>PARTITION BY DATE(order_date)</code> prevents full table scans; <code>CLUSTER BY customer_id, product_id</code> optimizes selective filtering.</li>
                         <li><strong>AWS Redshift:</strong> <code>DISTSTYLE KEY (customer_id)</code> co-locates customer joins with worker slices; <code>COMPOUND SORTKEY (order_date, customer_id)</code> accelerates date range lookups.</li>
@@ -948,7 +1089,7 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
 
     <!-- ==================== JAVASCRIPT LOGIC & EMBEDDED RESILIENT DATA ==================== -->
     <script>
-        // Default Embedded Warehouse Dataset (Guarantees zero-error instant loading anywhere)
+        // Default Embedded Warehouse Dataset
         const DEFAULT_WAREHOUSE_DATA = {
             status: "success",
             metrics: {
@@ -998,6 +1139,20 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
         let rfmSegmentChartInstance = null;
         let rfmRevenueChartInstance = null;
 
+        // Theme Switcher Function
+        function changeTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            localStorage.setItem('dw_dashboard_theme', themeName);
+            document.getElementById('themeSelect').value = themeName;
+            
+            // Re-render charts with updated theme colors
+            renderSalesTrend();
+            renderCategoryDonut();
+            if (document.getElementById('tab-rfm').classList.contains('active')) {
+                renderRFMCharts();
+            }
+        }
+
         // Tab Switching
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1013,6 +1168,11 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
 
         // Initialize and Load Data
         async function initializePlatform() {
+            // Restore saved theme if any
+            const savedTheme = localStorage.getItem('dw_dashboard_theme') || 'cyberpunk';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeSelect').value = savedTheme;
+
             // Attempt to load from live API or static JSON file if available
             try {
                 const response = await fetch('./data.json', { cache: 'no-store' });
@@ -1023,7 +1183,7 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     }
                 }
             } catch (e) {
-                // Fallback to DEFAULT_WAREHOUSE_DATA seamlessly (No error banner!)
+                // Fallback to DEFAULT_WAREHOUSE_DATA seamlessly
             }
 
             renderDashboard();
@@ -1042,16 +1202,22 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             renderTable(currentData.recent_transactions);
         }
 
+        function getComputedVar(varName) {
+            return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+        }
+
         function renderSalesTrend() {
             const ctx = document.getElementById('salesTrendChart').getContext('2d');
             const labels = Object.keys(currentData.monthly_sales);
             const values = Object.values(currentData.monthly_sales);
+            const primaryColor = getComputedVar('--primary') || '#6366f1';
+            const textColor = getComputedVar('--text-secondary') || '#94a3b8';
 
             if (salesChartInstance) salesChartInstance.destroy();
 
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
-            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+            gradient.addColorStop(0, primaryColor + '4D');
+            gradient.addColorStop(1, primaryColor + '00');
 
             salesChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -1060,12 +1226,12 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     datasets: [{
                         label: 'Monthly Revenue ($)',
                         data: values,
-                        borderColor: '#6366f1',
+                        borderColor: primaryColor,
                         borderWidth: 3,
                         backgroundColor: gradient,
                         fill: true,
                         tension: 0.35,
-                        pointBackgroundColor: '#6366f1',
+                        pointBackgroundColor: primaryColor,
                         pointBorderColor: '#ffffff',
                         pointRadius: 4,
                         pointHoverRadius: 7
@@ -1085,11 +1251,11 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     scales: {
                         y: {
                             grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                            ticks: { color: '#94a3b8', callback: (v) => '$' + (v / 1000) + 'k' }
+                            ticks: { color: textColor, callback: (v) => '$' + (v / 1000) + 'k' }
                         },
                         x: {
                             grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                            ticks: { color: '#94a3b8' }
+                            ticks: { color: textColor }
                         }
                     }
                 }
@@ -1100,6 +1266,11 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             const ctx = document.getElementById('categorySalesChart').getContext('2d');
             const labels = Object.keys(currentData.category_sales);
             const values = Object.values(currentData.category_sales);
+            const primary = getComputedVar('--primary');
+            const cyan = getComputedVar('--cyan');
+            const emerald = getComputedVar('--emerald');
+            const amber = getComputedVar('--amber');
+            const rose = getComputedVar('--rose');
 
             if (categoryChartInstance) categoryChartInstance.destroy();
 
@@ -1109,9 +1280,9 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     labels: labels,
                     datasets: [{
                         data: values,
-                        backgroundColor: ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'],
+                        backgroundColor: [primary, cyan, emerald, amber, rose],
                         borderWidth: 2,
-                        borderColor: '#111827'
+                        borderColor: getComputedVar('--bg-surface')
                     }]
                 },
                 options: {
@@ -1120,7 +1291,7 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     plugins: {
                         legend: {
                             position: 'right',
-                            labels: { color: '#f8fafc', font: { family: 'Outfit', size: 12 }, padding: 14 }
+                            labels: { color: getComputedVar('--text-primary'), font: { family: 'Outfit', size: 12 }, padding: 14 }
                         },
                         tooltip: {
                             callbacks: {
@@ -1139,6 +1310,12 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             const segments = Object.keys(currentData.rfm_segments);
             const counts = segments.map(s => currentData.rfm_segments[s].count);
             const revenues = segments.map(s => currentData.rfm_segments[s].revenue);
+            const primary = getComputedVar('--primary');
+            const cyan = getComputedVar('--cyan');
+            const emerald = getComputedVar('--emerald');
+            const amber = getComputedVar('--amber');
+            const rose = getComputedVar('--rose');
+            const palette = [cyan, emerald, primary, amber, rose];
 
             if (rfmSegmentChartInstance) rfmSegmentChartInstance.destroy();
             rfmSegmentChartInstance = new Chart(ctx1, {
@@ -1148,7 +1325,7 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     datasets: [{
                         label: 'Customers',
                         data: counts,
-                        backgroundColor: ['#38bdf8', '#34d399', '#a78bfa', '#f59e0b', '#f43f5e'],
+                        backgroundColor: palette,
                         borderRadius: 6
                     }]
                 },
@@ -1157,8 +1334,8 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: getComputedVar('--text-secondary') } },
+                        x: { grid: { display: false }, ticks: { color: getComputedVar('--text-secondary') } }
                     }
                 }
             });
@@ -1170,16 +1347,16 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     labels: segments,
                     datasets: [{
                         data: revenues,
-                        backgroundColor: ['#38bdf8', '#34d399', '#a78bfa', '#f59e0b', '#f43f5e'],
+                        backgroundColor: palette,
                         borderWidth: 2,
-                        borderColor: '#111827'
+                        borderColor: getComputedVar('--bg-surface')
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'right', labels: { color: '#f8fafc', font: { family: 'Outfit', size: 11 } } },
+                        legend: { position: 'right', labels: { color: getComputedVar('--text-primary'), font: { family: 'Outfit', size: 11 } } },
                         tooltip: { callbacks: { label: (ctx) => `${ctx.label}: $${ctx.parsed.toLocaleString()}` } }
                     }
                 }
@@ -1193,12 +1370,12 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             transactions.forEach(tx => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="font-weight: 600; color: #60a5fa; font-family: monospace;">${tx.order_id}</td>
+                    <td style="font-weight: 600; color: var(--cyan); font-family: monospace;">${tx.order_id}</td>
                     <td>${tx.customer_name}</td>
                     <td>${tx.product_name}</td>
                     <td><span class="badge-category">${tx.category}</span></td>
                     <td>${tx.quantity}</td>
-                    <td style="font-weight: 600; color: #10b981;">$${Number(tx.item_total).toFixed(2)}</td>
+                    <td style="font-weight: 600; color: var(--emerald);">$${Number(tx.item_total).toFixed(2)}</td>
                     <td style="color: var(--text-muted); font-size: 0.8rem;">${tx.order_date}</td>
                 `;
                 tbody.appendChild(tr);
