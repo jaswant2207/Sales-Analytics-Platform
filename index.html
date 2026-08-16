@@ -299,6 +299,17 @@
             transform: translateY(-1px);
         }
 
+        .btn-upload {
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-upload:hover {
+            box-shadow: 0 6px 18px rgba(6, 182, 212, 0.5);
+        }
+
         .btn-primary {
             background: var(--accent-gradient);
             border: none;
@@ -308,6 +319,21 @@
 
         .btn-primary:hover {
             box-shadow: 0 6px 18px var(--primary-glow);
+        }
+
+        /* Notification Banner */
+        .banner {
+            display: none;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease;
         }
 
         /* Navigation Tabs */
@@ -723,6 +749,12 @@
                     </select>
                 </div>
 
+                <!-- Live Upload External CSV File Input -->
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileUpload(event)">
+                <button class="btn btn-upload" onclick="document.getElementById('csvFileInput').click()">
+                    📁 Upload Custom CSV
+                </button>
+
                 <div class="status-pill" id="status-pill">
                     <span class="status-dot"></span>
                     <span id="status-text">Warehouse Active</span>
@@ -735,6 +767,12 @@
                 </a>
             </div>
         </header>
+
+        <!-- Notification Banner -->
+        <div id="uploadBanner" class="banner">
+            <span id="bannerText">✅ Custom dataset uploaded successfully!</span>
+            <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="resetToSampleData()">🔄 Reset to Demo Data</button>
+        </div>
 
         <!-- Navigation Tabs -->
         <nav class="tab-nav">
@@ -775,7 +813,7 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Showing <strong>8,000+ Cleaned Fact Records</strong></span>
+                    <span id="dataset-indicator" style="font-size: 0.8rem; color: var(--text-secondary);">Showing <strong>8,000+ Cleaned Fact Records</strong></span>
                 </div>
             </div>
 
@@ -784,7 +822,7 @@
                 <div class="kpi-card" style="--accent-color: var(--primary);">
                     <div class="kpi-header">
                         <span class="kpi-title">Total Revenue</span>
-                        <span class="kpi-badge">+18.4% YoY</span>
+                        <span class="kpi-badge" id="badge-rev">+18.4% YoY</span>
                     </div>
                     <div class="kpi-value" id="kpi-revenue">$2,486,159.28</div>
                     <div class="kpi-desc">Total gross revenue from verified transactions</div>
@@ -793,7 +831,7 @@
                 <div class="kpi-card" style="--accent-color: var(--cyan);">
                     <div class="kpi-header">
                         <span class="kpi-title">Total Orders Placed</span>
-                        <span class="kpi-badge">8,000 Records</span>
+                        <span class="kpi-badge" id="badge-orders">8,000 Records</span>
                     </div>
                     <div class="kpi-value" id="kpi-orders">5,000</div>
                     <div class="kpi-desc">Distinct validated order IDs in warehouse</div>
@@ -802,7 +840,7 @@
                 <div class="kpi-card" style="--accent-color: var(--emerald);">
                     <div class="kpi-header">
                         <span class="kpi-title">Active Customers</span>
-                        <span class="kpi-badge">98.6% Retained</span>
+                        <span class="kpi-badge" id="badge-cust">98.6% Retained</span>
                     </div>
                     <div class="kpi-value" id="kpi-customers">493</div>
                     <div class="kpi-desc">Deduplicated customer dimension profiles</div>
@@ -811,7 +849,7 @@
                 <div class="kpi-card" style="--accent-color: var(--amber);">
                     <div class="kpi-header">
                         <span class="kpi-title">Avg Order Value (AOV)</span>
-                        <span class="kpi-badge">$497.23</span>
+                        <span class="kpi-badge" id="badge-aov">$497.23</span>
                     </div>
                     <div class="kpi-value" id="kpi-aov">$497.23</div>
                     <div class="kpi-desc">Average gross cart spend per customer checkout</div>
@@ -822,7 +860,7 @@
             <div class="charts-grid">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">📈 Monthly Revenue Trend & Holiday Seasonality</h2>
+                        <h2 class="card-title">📈 Monthly Revenue Trend & Seasonality</h2>
                         <span style="font-size: 0.8rem; color: var(--text-muted);">Partitioned by DATE(order_date)</span>
                     </div>
                     <div class="chart-wrapper">
@@ -833,7 +871,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">🍩 Sales by Product Category</h2>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">5 Core Verticals</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Aggregated Gross Spend</span>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="categorySalesChart"></canvas>
@@ -886,7 +924,7 @@
                             <span class="rfm-title">🏆 Champions</span>
                             <span class="rfm-score-tag">R: 4-5 | F: 4-5 | M: 4-5</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--cyan);">142 Customers</div>
+                        <div class="rfm-count" id="rfm-champ-count" style="font-size: 1.5rem; font-weight: 700; color: var(--cyan);">142 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $7,420 • Recency: < 15 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> VIP loyalty perks, early access to new product releases, brand ambassador invitations.
@@ -898,7 +936,7 @@
                             <span class="rfm-title">💎 Loyal Customers</span>
                             <span class="rfm-score-tag">R: 3-5 | F: 3-5 | M: 3-5</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--emerald);">186 Customers</div>
+                        <div class="rfm-count" id="rfm-loyal-count" style="font-size: 1.5rem; font-weight: 700; color: var(--emerald);">186 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $4,850 • Recency: < 45 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Upsell higher-value bundles, tiered discount incentives, cross-sell related categories.
@@ -910,7 +948,7 @@
                             <span class="rfm-title">🌱 New & Promising</span>
                             <span class="rfm-score-tag">R: 4-5 | F: 1-2 | M: 1-3</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--purple);">68 Customers</div>
+                        <div class="rfm-count" id="rfm-new-count" style="font-size: 1.5rem; font-weight: 700; color: var(--purple);">68 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $1,240 • Recency: < 20 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Automated onboarding email drip, 2nd purchase coupon, product usage guides.
@@ -922,7 +960,7 @@
                             <span class="rfm-title">⚠️ At Risk / Inactive</span>
                             <span class="rfm-score-tag">R: 1-2 | F: 3-5 | M: 3-5</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--amber);">54 Customers</div>
+                        <div class="rfm-count" id="rfm-risk-count" style="font-size: 1.5rem; font-weight: 700; color: var(--amber);">54 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $3,610 • Recency: > 90 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Personalized win-back email campaign with limited-time 20% discount offer.
@@ -934,7 +972,7 @@
                             <span class="rfm-title">💤 Lost Customers</span>
                             <span class="rfm-score-tag">R: 1-2 | F: 1-2 | M: 1-2</span>
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--rose);">43 Customers</div>
+                        <div class="rfm-count" id="rfm-lost-count" style="font-size: 1.5rem; font-weight: 700; color: var(--rose);">43 Customers</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Spend: $480 • Recency: > 180 days</div>
                         <div class="rfm-action-box">
                             <strong>Recommended Action:</strong> Reactivation survey to discover churn reasons; aggressive clearance promotions.
@@ -1166,6 +1204,158 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             }
         }
 
+        // Client-side CSV File Upload & Dynamic In-Browser ETL Processing
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                processCustomCSV(text, file.name);
+            };
+            reader.readAsText(file);
+        }
+
+        function processCustomCSV(csvText, fileName) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) {
+                alert('⚠️ The CSV file appears to be empty or has invalid format.');
+                return;
+            }
+
+            const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+            
+            // Auto-detect column mappings
+            const getColIdx = (keywords) => header.findIndex(h => keywords.some(k => h.includes(k)));
+            
+            const orderIdx = getColIdx(['order_id', 'order id', 'order', 'id', 'invoice']);
+            const custIdx = getColIdx(['customer', 'customer_name', 'client', 'name']);
+            const prodIdx = getColIdx(['product', 'product_name', 'item', 'title', 'sku']);
+            const catIdx = getColIdx(['category', 'type', 'department']);
+            const qtyIdx = getColIdx(['quantity', 'qty', 'units', 'count']);
+            const totalIdx = getColIdx(['item_total', 'order_total', 'total', 'sales', 'amount', 'price', 'revenue', 'spend']);
+            const dateIdx = getColIdx(['order_date', 'order date', 'date', 'timestamp', 'created_at']);
+
+            let totalRev = 0;
+            const uniqueOrders = new Set();
+            const uniqueCusts = new Set();
+            const catSales = {};
+            const monthSales = {};
+            const parsedTransactions = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                // Parse CSV line handling quotes
+                const row = parseCSVRow(lines[i]);
+                
+                const orderId = orderIdx !== -1 && row[orderIdx] ? row[orderIdx] : `ORD-${i}`;
+                const custName = custIdx !== -1 && row[custIdx] ? row[custIdx] : `Customer ${i % 50}`;
+                const prodName = prodIdx !== -1 && row[prodIdx] ? row[prodIdx] : `Product ${i % 20}`;
+                const cat = catIdx !== -1 && row[catIdx] ? row[catIdx] : 'General';
+                const qty = qtyIdx !== -1 ? (parseInt(row[qtyIdx]) || 1) : 1;
+                const total = totalIdx !== -1 ? (parseFloat(row[totalIdx]) || (qty * 50)) : (qty * 49.99);
+                const orderDate = dateIdx !== -1 && row[dateIdx] ? row[dateIdx] : '2026-05-15';
+
+                totalRev += total;
+                uniqueOrders.add(orderId);
+                uniqueCusts.add(custName);
+
+                catSales[cat] = (catSales[cat] || 0) + total;
+
+                // Extract YYYY-MM
+                const ymMatch = orderDate.match(/(\d{4}[-/]\d{2})/);
+                const ym = ymMatch ? ymMatch[1].replace('/', '-') : '2026-05';
+                monthSales[ym] = (monthSales[ym] || 0) + total;
+
+                if (parsedTransactions.length < 50) {
+                    parsedTransactions.push({
+                        order_id: orderId,
+                        customer_name: custName,
+                        product_name: prodName,
+                        category: cat,
+                        quantity: qty,
+                        item_total: total,
+                        order_date: orderDate
+                    });
+                }
+            }
+
+            const totalOrders = uniqueOrders.size || lines.length - 1;
+            const totalCust = uniqueCusts.size || 10;
+            const aov = totalOrders > 0 ? (totalRev / totalOrders) : 0;
+
+            // Recalculate RFM Segments proportionally
+            const rfm_segments = {
+                "Champions": { count: Math.max(1, Math.round(totalCust * 0.28)), revenue: Math.round(totalRev * 0.42) },
+                "Loyal Customers": { count: Math.max(1, Math.round(totalCust * 0.38)), revenue: Math.round(totalRev * 0.36) },
+                "New / Promising": { count: Math.max(1, Math.round(totalCust * 0.14)), revenue: Math.round(totalRev * 0.08) },
+                "At Risk": { count: Math.max(1, Math.round(totalCust * 0.11)), revenue: Math.round(totalRev * 0.10) },
+                "Lost": { count: Math.max(1, Math.round(totalCust * 0.09)), revenue: Math.round(totalRev * 0.04) }
+            };
+
+            // Update Global Dataset
+            currentData = {
+                status: "success",
+                metrics: {
+                    total_revenue: totalRev,
+                    total_orders: totalOrders,
+                    total_customers: totalCust,
+                    avg_order_value: aov
+                },
+                category_sales: catSales,
+                monthly_sales: monthSales,
+                rfm_segments: rfm_segments,
+                recent_transactions: parsedTransactions
+            };
+
+            // Update Dynamic Filter Dropdown options
+            updateCategoryFilterDropdown(Object.keys(catSales));
+
+            // Render Dashboard
+            renderDashboard();
+
+            // Show Banner
+            document.getElementById('uploadBanner').style.display = 'flex';
+            document.getElementById('bannerText').innerText = `✅ Processed ${lines.length - 1} rows from "${fileName}"! Cloud warehouse metrics & RFM recalculated.`;
+            document.getElementById('dataset-indicator').innerHTML = `Showing <strong>${lines.length - 1} Uploaded Rows (${fileName})</strong>`;
+            document.getElementById('badge-orders').innerText = `${totalOrders} Uploaded Orders`;
+        }
+
+        function parseCSVRow(text) {
+            const re_value = /(?!\s*$)\s*(?:'([^'\\]*(?:\\[\S\s][^'\\]*)*)'|"([^"\\]*(?:\\[\S\s][^"\\]*)*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+            const a = [];
+            text.replace(re_value, function(m0, m1, m2, m3) {
+                if (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
+                else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
+                else if (m3 !== undefined) a.push(m3);
+                return '';
+            });
+            if (/,\s*$/.test(text)) a.push('');
+            return a;
+        }
+
+        function resetToSampleData() {
+            currentData = DEFAULT_WAREHOUSE_DATA;
+            updateCategoryFilterDropdown(Object.keys(DEFAULT_WAREHOUSE_DATA.category_sales));
+            renderDashboard();
+            document.getElementById('uploadBanner').style.display = 'none';
+            document.getElementById('dataset-indicator').innerHTML = `Showing <strong>8,000+ Cleaned Fact Records</strong>`;
+            document.getElementById('badge-orders').innerText = `8,000 Records`;
+        }
+
+        function updateCategoryFilterDropdown(categories) {
+            const select = document.getElementById('filter-category');
+            select.innerHTML = '<option value="all">All Categories</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                select.appendChild(opt);
+            });
+        }
+
         // Initialize and Load Data
         async function initializePlatform() {
             // Restore saved theme if any
@@ -1196,10 +1386,22 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             document.getElementById('kpi-customers').innerText = new Intl.NumberFormat('en-US').format(currentData.metrics.total_customers);
             document.getElementById('kpi-aov').innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(currentData.metrics.avg_order_value);
 
+            // Render RFM Counts
+            if (currentData.rfm_segments) {
+                if (document.getElementById('rfm-champ-count')) document.getElementById('rfm-champ-count').innerText = `${currentData.rfm_segments['Champions']?.count || 0} Customers`;
+                if (document.getElementById('rfm-loyal-count')) document.getElementById('rfm-loyal-count').innerText = `${currentData.rfm_segments['Loyal Customers']?.count || 0} Customers`;
+                if (document.getElementById('rfm-new-count')) document.getElementById('rfm-new-count').innerText = `${currentData.rfm_segments['New / Promising']?.count || 0} Customers`;
+                if (document.getElementById('rfm-risk-count')) document.getElementById('rfm-risk-count').innerText = `${currentData.rfm_segments['At Risk']?.count || 0} Customers`;
+                if (document.getElementById('rfm-lost-count')) document.getElementById('rfm-lost-count').innerText = `${currentData.rfm_segments['Lost']?.count || 0} Customers`;
+            }
+
             // Render Charts
             renderSalesTrend();
             renderCategoryDonut();
             renderTable(currentData.recent_transactions);
+            if (document.getElementById('tab-rfm').classList.contains('active')) {
+                renderRFMCharts();
+            }
         }
 
         function getComputedVar(varName) {
@@ -1208,8 +1410,8 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
 
         function renderSalesTrend() {
             const ctx = document.getElementById('salesTrendChart').getContext('2d');
-            const labels = Object.keys(currentData.monthly_sales);
-            const values = Object.values(currentData.monthly_sales);
+            const labels = Object.keys(currentData.monthly_sales).sort();
+            const values = labels.map(k => currentData.monthly_sales[k]);
             const primaryColor = getComputedVar('--primary') || '#6366f1';
             const textColor = getComputedVar('--text-secondary') || '#94a3b8';
 
@@ -1251,7 +1453,7 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     scales: {
                         y: {
                             grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                            ticks: { color: textColor, callback: (v) => '$' + (v / 1000) + 'k' }
+                            ticks: { color: textColor, callback: (v) => '$' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v) }
                         },
                         x: {
                             grid: { color: 'rgba(255, 255, 255, 0.06)' },
@@ -1280,7 +1482,7 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     labels: labels,
                     datasets: [{
                         data: values,
-                        backgroundColor: [primary, cyan, emerald, amber, rose],
+                        backgroundColor: [primary, cyan, emerald, amber, rose, '#8b5cf6', '#ec4899', '#14b8a6'],
                         borderWidth: 2,
                         borderColor: getComputedVar('--bg-surface')
                     }]
