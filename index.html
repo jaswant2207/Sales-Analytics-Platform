@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (xlsx) for Excel (.xlsx, .xls) Parsing & Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* ================= THEME COLOR PALETTES ================= */
         :root, [data-theme="cyberpunk"] {
@@ -188,6 +190,7 @@
             letter-spacing: -0.02em;
             background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -252,14 +255,21 @@
         .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.45rem;
             padding: 0.45rem 0.9rem;
             border-radius: 999px;
             font-size: 0.8rem;
-            font-weight: 500;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
             color: var(--emerald);
+            white-space: nowrap;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+        }
+
+        .status-pill .status-icon {
+            font-size: 0.9rem;
+            line-height: 1;
         }
 
         .status-dot {
@@ -269,6 +279,7 @@
             background-color: var(--emerald);
             box-shadow: 0 0 8px var(--emerald);
             animation: pulse 2s infinite;
+            flex-shrink: 0;
         }
 
         @keyframes pulse {
@@ -731,8 +742,7 @@
                 <div class="brand-text">
                     <h1>Sales Analytics & Data Warehouse Platform</h1>
                     <p>
-                        <span>Enterprise Cloud Analytics</span> • 
-                        <span class="developer-badge">Jaswant | Data Engineering</span>
+                        <span>Enterprise Cloud Analytics & Business Intelligence</span>
                     </p>
                 </div>
             </div>
@@ -749,29 +759,40 @@
                     </select>
                 </div>
 
-                <!-- Live Upload External CSV File Input -->
-                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileUpload(event)">
-                <button class="btn btn-upload" onclick="document.getElementById('csvFileInput').click()">
-                    📁 Upload Custom CSV
+                <!-- Live Upload External CSV / Excel File Input -->
+                <input type="file" id="csvFileInput" accept=".csv, .xlsx, .xls" style="display: none;" onchange="handleFileUpload(event)">
+                <button class="btn btn-upload" onclick="document.getElementById('csvFileInput').click()" title="Upload CSV or Excel (.xlsx, .xls) dataset">
+                    📁 Upload CSV / Excel
                 </button>
 
-                <div class="status-pill" id="status-pill">
-                    <span class="status-dot"></span>
-                    <span id="status-text">Warehouse Active</span>
-                </div>
+                <!-- Download Sample Excel Template Button -->
+                <button class="btn" id="btn-download-sample" onclick="downloadSampleExcel()" title="Download sample sales dataset in Excel (.xlsx) format">
+                    📊 Sample Excel (.xlsx)
+                </button>
+
                 <button class="btn" id="btn-export-csv" onclick="exportSummaryCSV()">
                     📥 Export CSV
                 </button>
                 <a href="https://github.com/jaswant2207/Sales-Analytics-Platform" target="_blank" class="btn btn-primary">
                     ⭐ GitHub Repo
                 </a>
+
+                <!-- Warehouse Active Indicator (Top Right Corner) -->
+                <div class="status-pill" id="status-pill" title="Cloud Data Warehouse Connection: Active">
+                    <span class="status-dot"></span>
+                    <span class="status-icon">🏬</span>
+                    <span id="status-text">Warehouse Active</span>
+                </div>
             </div>
         </header>
 
         <!-- Notification Banner -->
         <div id="uploadBanner" class="banner">
             <span id="bannerText">✅ Custom dataset uploaded successfully!</span>
-            <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="resetToSampleData()">🔄 Reset to Demo Data</button>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="downloadSampleExcel()">📥 Get Sample Excel</button>
+                <button class="btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="resetToSampleData()">🔄 Reset to Demo Data</button>
+            </div>
         </div>
 
         <!-- Navigation Tabs -->
@@ -1117,7 +1138,7 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
         <!-- Footer -->
         <footer>
             <div>
-                © 2026 <strong>Sales Analytics Platform</strong> | Developed by <strong>Jaswant</strong>
+                © 2026 <strong>Sales Analytics Platform</strong> • Enterprise Data Warehouse
             </div>
             <div>
                 Cloud Data Warehouse Architecture: <strong>Google BigQuery & AWS Redshift Ready</strong>
@@ -1192,29 +1213,140 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
         }
 
         // Tab Switching
-        function switchTab(tabId) {
+        function switchTab(tabId, ev) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             
-            event.currentTarget.classList.add('active');
-            document.getElementById('tab-' + tabId).classList.add('active');
+            const currentBtn = (ev && ev.currentTarget) || (window.event && window.event.currentTarget) || document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
+            if (currentBtn) currentBtn.classList.add('active');
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) targetTab.classList.add('active');
 
             if (tabId === 'rfm' && !rfmSegmentChartInstance) {
                 renderRFMCharts();
             }
         }
 
-        // Client-side CSV File Upload & Dynamic In-Browser ETL Processing
+        // Download Built-in Sample Excel Dataset Template (.xlsx)
+        function downloadSampleExcel() {
+            const sampleData = [
+                { "order_id": "ORD-1001", "customer_name": "Alexander Wright", "product_name": "MacBook Pro 16\"", "category": "Electronics", "quantity": 1, "item_total": 2499.00, "order_date": "2026-01-12 10:15:00" },
+                { "order_id": "ORD-1002", "customer_name": "Sophia Martinez", "product_name": "Sony WH-1000XM5 Headphones", "category": "Electronics", "quantity": 2, "item_total": 798.00, "order_date": "2026-01-14 14:22:30" },
+                { "order_id": "ORD-1003", "customer_name": "Liam Johnson", "product_name": "Nike Air Zoom Pegasus", "category": "Apparel & Footwear", "quantity": 1, "item_total": 130.00, "order_date": "2026-01-18 09:45:10" },
+                { "order_id": "ORD-1004", "customer_name": "Emma Watson", "product_name": "Ergonomic Mesh Office Chair", "category": "Home & Furniture", "quantity": 1, "item_total": 349.50, "order_date": "2026-01-20 16:30:00" },
+                { "order_id": "ORD-1005", "customer_name": "Noah Davis", "product_name": "Samsung 4K Curved Monitor 34\"", "category": "Electronics", "quantity": 1, "item_total": 850.00, "order_date": "2026-01-25 11:10:00" },
+                { "order_id": "ORD-1006", "customer_name": "Olivia Brown", "product_name": "Lululemon Align High-Rise Pant", "category": "Apparel & Footwear", "quantity": 3, "item_total": 294.00, "order_date": "2026-02-02 13:05:40" },
+                { "order_id": "ORD-1007", "customer_name": "William Taylor", "product_name": "Espresso Machine Barista Pro", "category": "Home & Furniture", "quantity": 1, "item_total": 699.95, "order_date": "2026-02-05 18:40:15" },
+                { "order_id": "ORD-1008", "customer_name": "Ava Anderson", "product_name": "Apple iPad Pro 12.9\"", "category": "Electronics", "quantity": 1, "item_total": 1099.00, "order_date": "2026-02-11 08:20:00" },
+                { "order_id": "ORD-1009", "customer_name": "James Wilson", "product_name": "Dyson V15 Detect Vacuum", "category": "Home & Furniture", "quantity": 1, "item_total": 749.99, "order_date": "2026-02-16 12:15:30" },
+                { "order_id": "ORD-1010", "customer_name": "Isabella Thomas", "product_name": "Organic Vitamin C Serum", "category": "Beauty & Personal Care", "quantity": 4, "item_total": 156.00, "order_date": "2026-02-22 17:50:00" },
+                { "order_id": "ORD-1011", "customer_name": "Benjamin Jackson", "product_name": "Adjustable Dumbbell Set 50lbs", "category": "Sports & Fitness", "quantity": 1, "item_total": 399.00, "order_date": "2026-03-01 10:00:20" },
+                { "order_id": "ORD-1012", "customer_name": "Mia White", "product_name": "Levi's 501 Original Fit Jeans", "category": "Apparel & Footwear", "quantity": 2, "item_total": 179.00, "order_date": "2026-03-04 15:35:00" },
+                { "order_id": "ORD-1013", "customer_name": "Lucas Harris", "product_name": "Logitech MX Master 3S Mouse", "category": "Electronics", "quantity": 2, "item_total": 198.00, "order_date": "2026-03-09 11:45:10" },
+                { "order_id": "ORD-1014", "customer_name": "Charlotte Martin", "product_name": "Hydrating Facial Cleanser 3-Pack", "category": "Beauty & Personal Care", "quantity": 2, "item_total": 88.00, "order_date": "2026-03-14 19:20:00" },
+                { "order_id": "ORD-1015", "customer_name": "Henry Garcia", "product_name": "Garmin Forerunner 965 Smartwatch", "category": "Sports & Fitness", "quantity": 1, "item_total": 599.99, "order_date": "2026-03-18 07:30:00" },
+                { "order_id": "ORD-1016", "customer_name": "Amelia Rodriguez", "product_name": "All-Clad Stainless Steel Cookware Set", "category": "Home & Furniture", "quantity": 1, "item_total": 899.00, "order_date": "2026-03-24 14:10:45" },
+                { "order_id": "ORD-1017", "customer_name": "Mason Martinez", "product_name": "Patagonia Down Sweater Jacket", "category": "Apparel & Footwear", "quantity": 1, "item_total": 279.00, "order_date": "2026-03-29 16:55:00" },
+                { "order_id": "ORD-1018", "customer_name": "Harper Clark", "product_name": "Bose QuietComfort Earbuds II", "category": "Electronics", "quantity": 1, "item_total": 299.00, "order_date": "2026-04-03 09:12:00" },
+                { "order_id": "ORD-1019", "customer_name": "Evelyn Lewis", "product_name": "Hydro Flask Wide Mouth 32oz", "category": "Sports & Fitness", "quantity": 3, "item_total": 135.00, "order_date": "2026-04-08 13:40:00" },
+                { "order_id": "ORD-1020", "customer_name": "Ethan Lee", "product_name": "Smart Standing Desk Pro 60\"", "category": "Home & Furniture", "quantity": 1, "item_total": 580.00, "order_date": "2026-04-12 11:25:30" },
+                { "order_id": "ORD-1021", "customer_name": "Abigail Walker", "product_name": "Dyson Airwrap Multi-Styler", "category": "Beauty & Personal Care", "quantity": 1, "item_total": 599.99, "order_date": "2026-04-17 17:05:10" },
+                { "order_id": "ORD-1022", "customer_name": "Daniel Hall", "product_name": "Ultra-Wide Dual-Monitor Arm", "category": "Electronics", "quantity": 2, "item_total": 240.00, "order_date": "2026-04-21 10:50:00" },
+                { "order_id": "ORD-1023", "customer_name": "Emily Allen", "product_name": "Under Armour Compression Shirt", "category": "Apparel & Footwear", "quantity": 4, "item_total": 160.00, "order_date": "2026-04-26 14:30:00" },
+                { "order_id": "ORD-1024", "customer_name": "Michael Young", "product_name": "Keychron Q1 Pro Mechanical Keyboard", "category": "Electronics", "quantity": 1, "item_total": 199.00, "order_date": "2026-05-02 08:45:00" },
+                { "order_id": "ORD-1025", "customer_name": "Ella King", "product_name": "Bowflex SelectTech Kettlebell", "category": "Sports & Fitness", "quantity": 1, "item_total": 199.00, "order_date": "2026-05-06 12:20:00" },
+                { "order_id": "ORD-1026", "customer_name": "Alexander Wright", "product_name": "Sony PlayStation 5 Console", "category": "Electronics", "quantity": 1, "item_total": 499.99, "order_date": "2026-05-10 16:15:00" },
+                { "order_id": "ORD-1027", "customer_name": "Sophia Martinez", "product_name": "Ray-Ban Classic Wayfarer Sunglasses", "category": "Apparel & Footwear", "quantity": 1, "item_total": 163.00, "order_date": "2026-05-14 18:30:00" },
+                { "order_id": "ORD-1028", "customer_name": "Liam Johnson", "product_name": "Nespresso Vertuo Plus Coffee Maker", "category": "Home & Furniture", "quantity": 1, "item_total": 169.00, "order_date": "2026-05-19 09:05:00" },
+                { "order_id": "ORD-1029", "customer_name": "Emma Watson", "product_name": "Theragun PRO Percussive Massager", "category": "Sports & Fitness", "quantity": 1, "item_total": 399.00, "order_date": "2026-05-23 15:40:00" },
+                { "order_id": "ORD-1030", "customer_name": "Noah Davis", "product_name": "La Mer Moisturizing Crème 60ml", "category": "Beauty & Personal Care", "quantity": 1, "item_total": 380.00, "order_date": "2026-05-28 11:50:00" },
+                { "order_id": "ORD-1031", "customer_name": "Olivia Brown", "product_name": "Anker 737 Power Bank 140W", "category": "Electronics", "quantity": 2, "item_total": 260.00, "order_date": "2026-06-01 10:10:00" },
+                { "order_id": "ORD-1032", "customer_name": "William Taylor", "product_name": "Columbia Waterproof Hiking Boots", "category": "Apparel & Footwear", "quantity": 1, "item_total": 140.00, "order_date": "2026-06-05 14:00:00" },
+                { "order_id": "ORD-1033", "customer_name": "Ava Anderson", "product_name": "Sonos Era 300 Smart Speaker", "category": "Electronics", "quantity": 1, "item_total": 449.00, "order_date": "2026-06-10 17:25:00" },
+                { "order_id": "ORD-1034", "customer_name": "James Wilson", "product_name": "Yeti Tundra 45 Hard Cooler", "category": "Sports & Fitness", "quantity": 1, "item_total": 325.00, "order_date": "2026-06-15 12:45:00" },
+                { "order_id": "ORD-1035", "customer_name": "Isabella Thomas", "product_name": "Le Creuset Dutch Oven 5.5 Qt", "category": "Home & Furniture", "quantity": 1, "item_total": 420.00, "order_date": "2026-06-20 19:10:00" },
+                { "order_id": "ORD-1036", "customer_name": "Benjamin Jackson", "product_name": "Olaplex Hair Repair Treatment Kit", "category": "Beauty & Personal Care", "quantity": 2, "item_total": 112.00, "order_date": "2026-06-24 08:35:00" },
+                { "order_id": "ORD-1037", "customer_name": "Mia White", "product_name": "Dell XPS 15 InfinityEdge Laptop", "category": "Electronics", "quantity": 1, "item_total": 1899.00, "order_date": "2026-07-02 11:00:00" },
+                { "order_id": "ORD-1038", "customer_name": "Lucas Harris", "product_name": "Adidas Ultraboost Light Running Shoes", "category": "Apparel & Footwear", "quantity": 1, "item_total": 190.00, "order_date": "2026-07-07 16:20:00" },
+                { "order_id": "ORD-1039", "customer_name": "Charlotte Martin", "product_name": "KitchenAid Artisan Stand Mixer 5-Qt", "category": "Home & Furniture", "quantity": 1, "item_total": 449.99, "order_date": "2026-07-12 13:15:00" },
+                { "order_id": "ORD-1040", "customer_name": "Henry Garcia", "product_name": "NordicTrack Commercial S22i Studio Bike", "category": "Sports & Fitness", "quantity": 1, "item_total": 1499.00, "order_date": "2026-07-18 10:40:00" },
+                { "order_id": "ORD-1041", "customer_name": "Amelia Rodriguez", "product_name": "Glow Recipe Watermelon Dew Drops", "category": "Beauty & Personal Care", "quantity": 3, "item_total": 105.00, "order_date": "2026-07-23 15:55:00" },
+                { "order_id": "ORD-1042", "customer_name": "Mason Martinez", "product_name": "GoPro HERO12 Black Action Camera", "category": "Electronics", "quantity": 1, "item_total": 399.99, "order_date": "2026-07-28 09:30:00" },
+                { "order_id": "ORD-1043", "customer_name": "Harper Clark", "product_name": "The North Face ThermoBall Eco Jacket", "category": "Apparel & Footwear", "quantity": 1, "item_total": 230.00, "order_date": "2026-08-01 14:10:00" },
+                { "order_id": "ORD-1044", "customer_name": "Evelyn Lewis", "product_name": "De'Longhi Magnifica S Espresso Maker", "category": "Home & Furniture", "quantity": 1, "item_total": 649.00, "order_date": "2026-08-05 18:25:00" },
+                { "order_id": "ORD-1045", "customer_name": "Ethan Lee", "product_name": "Shokz OpenRun Pro Bone Conduction Headphones", "category": "Sports & Fitness", "quantity": 1, "item_total": 179.95, "order_date": "2026-08-09 11:15:00" },
+                { "order_id": "ORD-1046", "customer_name": "Abigail Walker", "product_name": "Sunday Riley Good Genes Treatment", "category": "Beauty & Personal Care", "quantity": 1, "item_total": 122.00, "order_date": "2026-08-13 16:45:00" },
+                { "order_id": "ORD-1047", "customer_name": "Daniel Hall", "product_name": "ASUS ROG Swift OLED 27\" Gaming Monitor", "category": "Electronics", "quantity": 1, "item_total": 899.00, "order_date": "2026-08-16 10:00:00" },
+                { "order_id": "ORD-1048", "customer_name": "Emily Allen", "product_name": "Vuori Sunday Performance Joggers", "category": "Apparel & Footwear", "quantity": 2, "item_total": 196.00, "order_date": "2026-08-16 12:30:00" },
+                { "order_id": "ORD-1049", "customer_name": "Michael Young", "product_name": "Ninja Foodi DualZone Air Fryer", "category": "Home & Furniture", "quantity": 1, "item_total": 199.99, "order_date": "2026-08-16 14:20:00" },
+                { "order_id": "ORD-1050", "customer_name": "Ella King", "product_name": "Concept2 RowErg Indoor Rower", "category": "Sports & Fitness", "quantity": 1, "item_total": 990.00, "order_date": "2026-08-16 16:00:00" }
+            ];
+
+            if (typeof XLSX !== 'undefined') {
+                const ws = XLSX.utils.json_to_sheet(sampleData);
+                // Set column widths
+                ws['!cols'] = [
+                    { wch: 12 }, // order_id
+                    { wch: 22 }, // customer_name
+                    { wch: 38 }, // product_name
+                    { wch: 24 }, // category
+                    { wch: 10 }, // quantity
+                    { wch: 14 }, // item_total
+                    { wch: 22 }  // order_date
+                ];
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Sales_Data");
+                XLSX.writeFile(wb, "sample_sales_upload.xlsx");
+            } else {
+                // Fallback CSV download if XLSX is unavailable
+                let csv = "order_id,customer_name,product_name,category,quantity,item_total,order_date\n";
+                sampleData.forEach(r => {
+                    csv += `${r.order_id},"${r.customer_name}","${r.product_name}","${r.category}",${r.quantity},${r.item_total},"${r.order_date}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sample_sales_upload.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Client-side CSV & Excel (.xlsx, .xls) File Upload & Dynamic In-Browser ETL
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                processCustomCSV(text, file.name);
-            };
-            reader.readAsText(file);
+            const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+            if (isExcel) {
+                if (typeof XLSX === 'undefined') {
+                    alert('⚠️ Excel parser library is still loading. Please try again in a few seconds or upload a CSV file.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const csvText = XLSX.utils.sheet_to_csv(worksheet);
+                        processCustomCSV(csvText, file.name);
+                    } catch (err) {
+                        alert('⚠️ Error reading Excel file: ' + err.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    processCustomCSV(text, file.name);
+                };
+                reader.readAsText(file);
+            }
         }
 
         function processCustomCSV(csvText, fileName) {
@@ -1363,9 +1495,12 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.getElementById('themeSelect').value = savedTheme;
 
-            // Attempt to load from live API or static JSON file if available
+            // Attempt to load from live API first, fallback to data.json
             try {
-                const response = await fetch('./data.json', { cache: 'no-store' });
+                let response = await fetch('/api/data', { cache: 'no-store' });
+                if (!response.ok) {
+                    response = await fetch('./data.json', { cache: 'no-store' });
+                }
                 if (response.ok) {
                     const fetchedJson = await response.json();
                     if (fetchedJson && fetchedJson.metrics) {
@@ -1373,7 +1508,17 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
                     }
                 }
             } catch (e) {
-                // Fallback to DEFAULT_WAREHOUSE_DATA seamlessly
+                try {
+                    const fallbackRes = await fetch('./data.json', { cache: 'no-store' });
+                    if (fallbackRes.ok) {
+                        const fallbackJson = await fallbackRes.json();
+                        if (fallbackJson && fallbackJson.metrics) {
+                            currentData = { ...DEFAULT_WAREHOUSE_DATA, ...fallbackJson };
+                        }
+                    }
+                } catch (err) {
+                    // Fallback to DEFAULT_WAREHOUSE_DATA seamlessly
+                }
             }
 
             renderDashboard();
@@ -1586,10 +1731,23 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
 
         function applyFilters() {
             const cat = document.getElementById('filter-category').value;
-            let filtered = currentData.recent_transactions;
+            const timeframe = document.getElementById('filter-timeframe').value;
+            let filtered = currentData.recent_transactions || [];
+
             if (cat !== 'all') {
                 filtered = filtered.filter(t => t.category === cat);
             }
+
+            if (timeframe === 'q4') {
+                filtered = filtered.filter(t => {
+                    if (!t.order_date) return false;
+                    const m = t.order_date.match(/-(\d{2})-/);
+                    return m && (m[1] === '11' || m[1] === '12');
+                });
+            } else if (timeframe === 'recent') {
+                filtered = filtered.slice(0, 10);
+            }
+
             renderTable(filtered);
         }
 
