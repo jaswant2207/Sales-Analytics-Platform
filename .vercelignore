@@ -1,0 +1,6 @@
+requirements.txt
+*.py
+Dockerfile
+docker-compose.yml
+.git
+.vscode
