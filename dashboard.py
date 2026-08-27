@@ -12,9 +12,17 @@ import os
 import sys
 import webbrowser
 import signal
+import mimetypes
 
 # Dynamic port assignment for cloud platforms (Render, Railway, Heroku, Cloud Run)
-PORT = int(os.environ.get('PORT', os.environ.get('SERVER_PORT', 8000)))
+def get_server_port():
+    port_env = os.environ.get('PORT', os.environ.get('SERVER_PORT', '8000')).strip()
+    try:
+        return int(port_env)
+    except (ValueError, TypeError):
+        return 8000
+
+PORT = get_server_port()
 HOST = os.environ.get('HOST', '0.0.0.0')
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,6 +50,20 @@ def ensure_warehouse_data():
             print(f"[ERROR] Failed to auto-generate warehouse data: {e}")
 
 class DashboardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    # Ensure correct MIME types on minimal cloud container environments
+    extensions_map = {
+        **http.server.SimpleHTTPRequestHandler.extensions_map,
+        '.html': 'text/html; charset=utf-8',
+        '.js': 'application/javascript; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.json': 'application/json; charset=utf-8',
+        '.csv': 'text/csv; charset=utf-8',
+        '.svg': 'image/svg+xml',
+        '.ico': 'image/x-icon',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
@@ -54,6 +76,15 @@ class DashboardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             return os.path.join(DIRECTORY, 'dashboard.html')
         return super().translate_path(path)
 
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests from cross-origin frontends."""
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+        self.send_header('Access-Control-Max-Age', '86400')
+        self.end_headers()
+
     def do_GET(self):
         clean_path = self.path.split('?')[0]
         
@@ -62,6 +93,7 @@ class DashboardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
             self.end_headers()
             self.wfile.write(json.dumps({'status': 'healthy', 'port': PORT}).encode('utf-8'))
             return
@@ -121,6 +153,46 @@ class DashboardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             df_cust['month'] = df_cust['signup_date'].dt.to_period('M').astype(str)
             monthly_signups = df_cust.groupby('month').size().sort_index().to_dict()
 
+            # Compute RFM Segments dynamically
+            max_date = df_sales['order_date'].max()
+            last_orders = df_sales.groupby('customer_id')['order_date'].max()
+            recency_days = (max_date - last_orders).dt.days
+            frequency = df_sales.groupby('customer_id')['order_id'].nunique()
+            monetary = df_sales.groupby('customer_id')['item_total'].sum()
+
+            rfm_df = pd.DataFrame({
+                'recency': recency_days,
+                'frequency': frequency,
+                'monetary': monetary
+            }).dropna()
+
+            rfm_segments = {}
+            if len(rfm_df) >= 5:
+                rfm_df['r_score'] = pd.qcut(rfm_df['recency'].rank(method='first', ascending=False), 5, labels=[1, 2, 3, 4, 5]).astype(int)
+                rfm_df['f_score'] = pd.qcut(rfm_df['frequency'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(int)
+                rfm_df['m_score'] = pd.qcut(rfm_df['monetary'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(int)
+
+                def get_segment(row):
+                    r, f, m = row['r_score'], row['f_score'], row['m_score']
+                    if r >= 4 and f >= 4 and m >= 4:
+                        return 'Champions'
+                    elif r >= 3 and f >= 3 and m >= 3:
+                        return 'Loyal Customers'
+                    elif r >= 4 and f <= 2:
+                        return 'New / Promising'
+                    elif r <= 2 and f >= 3:
+                        return 'At Risk'
+                    else:
+                        return 'Lost'
+
+                rfm_df['segment'] = rfm_df.apply(get_segment, axis=1)
+                for seg in ['Champions', 'Loyal Customers', 'New / Promising', 'At Risk', 'Lost']:
+                    sub = rfm_df[rfm_df['segment'] == seg]
+                    rfm_segments[seg] = {
+                        'count': int(len(sub)),
+                        'revenue': round(float(sub['monetary'].sum()), 2)
+                    }
+
             # Recent Transactions (Last 10 items)
             recent_df = df_sales.sort_values(by='order_date', ascending=False).head(10)
             recent_joined = recent_df.merge(df_prod, on='product_id', how='left').merge(df_cust, on='customer_id', how='left')
@@ -148,6 +220,7 @@ class DashboardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 'category_sales': category_sales,
                 'monthly_sales': monthly_sales,
                 'monthly_signups': monthly_signups,
+                'rfm_segments': rfm_segments,
                 'recent_transactions': recent_transactions
             }
 
@@ -173,8 +246,11 @@ def main():
     except ImportError:
         print("[WARNING] Pandas is not installed. Installing dependencies...")
         import subprocess
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas", "numpy", "Faker"])
-        import pandas as pd
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas", "numpy", "Faker"])
+            import pandas as pd
+        except Exception as e:
+            print(f"[WARNING] Could not auto-install dependencies: {e}")
 
     # Change to script directory to resolve paths correctly
     os.chdir(DIRECTORY)
@@ -196,7 +272,18 @@ def main():
         os.environ.get('NO_BROWSER')
     )
 
-    with socketserver.TCPServer((HOST, PORT), handler) as httpd:
+    # Use ThreadingHTTPServer for high-concurrency non-blocking requests in cloud
+    ServerClass = getattr(http.server, 'ThreadingHTTPServer', socketserver.ThreadingTCPServer)
+    ServerClass.allow_reuse_address = True
+
+    try:
+        httpd = ServerClass((HOST, PORT), handler)
+    except Exception as e:
+        print(f"[WARNING] Failed to bind to ({HOST}, {PORT}): {e}. Falling back to standard TCPServer...")
+        socketserver.TCPServer.allow_reuse_address = True
+        httpd = socketserver.TCPServer((HOST, PORT), handler)
+
+    with httpd:
         print(f"============================================================")
         print(f"  ETL ANALYTICS PRODUCTION DASHBOARD SERVER STARTED")
         print(f"============================================================")

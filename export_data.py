@@ -82,6 +82,46 @@ def generate_analytics_payload():
             'order_date': row['order_date'].strftime('%Y-%m-%d %H:%M') if not pd.isna(row['order_date']) else ''
         })
 
+    # Compute RFM Segments dynamically
+    max_date = df_sales['order_date'].max()
+    last_orders = df_sales.groupby('customer_id')['order_date'].max()
+    recency_days = (max_date - last_orders).dt.days
+    frequency = df_sales.groupby('customer_id')['order_id'].nunique()
+    monetary = df_sales.groupby('customer_id')['item_total'].sum()
+
+    rfm_df = pd.DataFrame({
+        'recency': recency_days,
+        'frequency': frequency,
+        'monetary': monetary
+    }).dropna()
+
+    rfm_segments = {}
+    if len(rfm_df) >= 5:
+        rfm_df['r_score'] = pd.qcut(rfm_df['recency'].rank(method='first', ascending=False), 5, labels=[1, 2, 3, 4, 5]).astype(int)
+        rfm_df['f_score'] = pd.qcut(rfm_df['frequency'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(int)
+        rfm_df['m_score'] = pd.qcut(rfm_df['monetary'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(int)
+
+        def get_segment(row):
+            r, f, m = row['r_score'], row['f_score'], row['m_score']
+            if r >= 4 and f >= 4 and m >= 4:
+                return 'Champions'
+            elif r >= 3 and f >= 3 and m >= 3:
+                return 'Loyal Customers'
+            elif r >= 4 and f <= 2:
+                return 'New / Promising'
+            elif r <= 2 and f >= 3:
+                return 'At Risk'
+            else:
+                return 'Lost'
+
+        rfm_df['segment'] = rfm_df.apply(get_segment, axis=1)
+        for seg in ['Champions', 'Loyal Customers', 'New / Promising', 'At Risk', 'Lost']:
+            sub = rfm_df[rfm_df['segment'] == seg]
+            rfm_segments[seg] = {
+                'count': int(len(sub)),
+                'revenue': round(float(sub['monetary'].sum()), 2)
+            }
+
     payload = {
         'status': 'success',
         'generated_at': str(pd.Timestamp.now()),
@@ -94,6 +134,7 @@ def generate_analytics_payload():
         'category_sales': category_sales,
         'monthly_sales': monthly_sales,
         'monthly_signups': monthly_signups,
+        'rfm_segments': rfm_segments,
         'recent_transactions': recent_transactions
     }
     return payload
