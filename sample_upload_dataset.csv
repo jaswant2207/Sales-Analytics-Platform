@@ -1,0 +1,21 @@
+order_id,customer_name,product_name,category,quantity,unit_price,item_total,order_date
+ORD-9001,Aarav Patel,Wireless Noise-Cancelling Headphones,Electronics,2,199.99,399.98,2026-03-15
+ORD-9002,Priya Sharma,Organic Cotton Hoodie,Clothing,3,45.50,136.50,2026-03-18
+ORD-9003,Rahul Verma,Smart Fitness Watch v2,Electronics,1,249.00,249.00,2026-03-20
+ORD-9004,Ananya Iyer,Ergonomic Office Chair,Home & Kitchen,1,320.00,320.00,2026-04-02
+ORD-9005,Vikram Singh,Stainless Steel Water Bottle,Sports & Outdoors,4,22.99,91.96,2026-04-05
+ORD-9006,Neha Gupta,Botanical Hydrating Serum,Beauty,2,38.00,76.00,2026-04-10
+ORD-9007,Siddharth Rao,Mechanical Gaming Keyboard,Electronics,1,129.99,129.99,2026-04-14
+ORD-9008,Kavita Menon,Ceramic Non-Stick Pan Set,Home & Kitchen,2,89.50,179.00,2026-04-20
+ORD-9009,Rohan Desai,Yoga Mat & Resistance Bands,Sports & Outdoors,3,34.00,102.00,2026-04-25
+ORD-9010,Deepa Nair,Anti-Aging Night Cream,Beauty,2,54.00,108.00,2026-05-02
+ORD-9011,Karthik Subramanian,Ultra HD 4K Monitor,Electronics,1,450.00,450.00,2026-05-08
+ORD-9012,Sneha Reddy,Waterproof Hiking Jacket,Clothing,2,110.00,220.00,2026-05-12
+ORD-9013,Arjun Kapoor,Automatic Espresso Machine,Home & Kitchen,1,580.00,580.00,2026-05-18
+ORD-9014,Pooja Hegde,Vitamin C Glow Facial Oil,Beauty,3,29.99,89.97,2026-05-22
+ORD-9015,Manish Joshi,Adjustable Dumbbell Set,Sports & Outdoors,2,175.00,350.00,2026-06-01
+ORD-9016,Tanvi Kulkarni,Slim-Fit Denim Jeans,Clothing,2,65.00,130.00,2026-06-05
+ORD-9017,Aditya Roy,Bluetooth Portable Speaker,Electronics,3,79.99,239.97,2026-06-10
+ORD-9018,Meera Nambiar,Air Purifier HEPA Filter,Home & Kitchen,1,199.00,199.00,2026-06-15
+ORD-9019,Gaurav Bhatt,Running Performance Shoes,Sports & Outdoors,1,140.00,140.00,2026-06-20
+ORD-9020,Divya Chawla,Hydrating Sunscreen SPF50,Beauty,4,19.50,78.00,2026-06-25

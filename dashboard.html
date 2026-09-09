@@ -13,6 +13,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (xlsx) for Excel (.xlsx, .xls) Parsing & Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- jsPDF & AutoTable for High-Quality Native PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
         /* ================= THEME COLOR PALETTES ================= */
         :root, [data-theme="cyberpunk"] {
@@ -773,9 +776,11 @@
                 <button class="btn" id="btn-export-csv" onclick="exportSummaryCSV()">
                     📥 Export CSV
                 </button>
-                <a href="https://github.com/jaswant2207/Sales-Analytics-Platform" target="_blank" class="btn btn-primary">
-                    ⭐ GitHub Repo
-                </a>
+
+                <!-- Dynamic PDF Analytical Report Export Button -->
+                <button class="btn btn-primary" id="btn-export-pdf" onclick="downloadAnalyticalPDFReport()" title="Generate and download complete Executive Analytics Report as PDF">
+                    📄 Download PDF Report
+                </button>
 
                 <!-- Warehouse Active Indicator (Top Right Corner) -->
                 <div class="status-pill" id="status-pill" title="Cloud Data Warehouse Connection: Active">
@@ -1773,6 +1778,240 @@ customer_rfm_scores <span class="sql-keyword">AS</span> (
             a.setAttribute('href', url);
             a.setAttribute('download', 'sales_analytics_export.csv');
             a.click();
+        }
+
+        function downloadAnalyticalPDFReport() {
+            const btn = document.getElementById('btn-export-pdf');
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) btn.innerHTML = '⏳ Generating PDF...';
+
+            try {
+                const jsPDFConstructor = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
+                if (!jsPDFConstructor) {
+                    alert('PDF generator library is initializing. Please ensure you have internet access and try again in a moment.');
+                    if (btn) btn.innerHTML = originalText;
+                    return;
+                }
+
+                const doc = new jsPDFConstructor({
+                    orientation: 'portrait',
+                    unit: 'pt',
+                    format: 'a4'
+                });
+
+                const m = currentData.metrics || {};
+                const rev = Number(m.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const orders = Number(m.total_orders || 0).toLocaleString();
+                const customers = Number(m.total_customers || 0).toLocaleString();
+                const aov = Number(m.avg_order_value || 0).toFixed(2);
+                const timestamp = new Date().toLocaleString();
+
+                function getChartImage(canvasId) {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) return null;
+                    try {
+                        return canvas.toDataURL('image/png');
+                    } catch (e) {
+                        return null;
+                    }
+                }
+
+                const catChartImg = getChartImage('categorySalesChart');
+
+                // =========================================================================
+                // EXECUTIVE 1-PAGE ANALYTICS BRIEF
+                // =========================================================================
+
+                // 1. Top Executive Banner (0 -> 52 pt)
+                doc.setFillColor(15, 23, 42); // Dark Navy Slate #0f172a
+                doc.rect(0, 0, 595.28, 52, 'F');
+
+                doc.setFontSize(8);
+                doc.setTextColor(56, 189, 248); // Cyan
+                doc.setFont('helvetica', 'bold');
+                doc.text('EXECUTIVE BUSINESS INTELLIGENCE & ANALYTICS REPORT', 30, 19);
+
+                doc.setFontSize(14);
+                doc.setTextColor(255, 255, 255);
+                doc.text('E-Commerce Sales Performance & Customer Intelligence', 30, 36);
+
+                doc.setFontSize(7.5);
+                doc.setTextColor(148, 163, 184);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Warehouse Star Schema • Generated: ${timestamp}`, 370, 36);
+
+                // 2. Section 1: Core KPI Scorecard (60 -> 116 pt)
+                doc.setFontSize(9.5);
+                doc.setTextColor(15, 23, 42);
+                doc.setFont('helvetica', 'bold');
+                doc.text('1. Core Executive KPI Scorecard', 30, 68);
+
+                const kpis = [
+                    { title: 'GROSS MERCHANDISE VALUE', val: `$${rev}`, color: [2, 132, 199] },
+                    { title: 'TOTAL PROCESSED ORDERS', val: orders, color: [15, 23, 42] },
+                    { title: 'REGISTERED CUSTOMERS', val: customers, color: [15, 23, 42] },
+                    { title: 'AVERAGE ORDER VALUE (AOV)', val: `$${aov}`, color: [5, 150, 105] }
+                ];
+
+                kpis.forEach((kpi, idx) => {
+                    const kx = 30 + idx * 136;
+                    doc.setFillColor(248, 250, 252);
+                    doc.setDrawColor(226, 232, 240);
+                    doc.roundedRect(kx, 76, 127, 40, 4, 4, 'FD');
+
+                    doc.setFontSize(6.5);
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(kpi.title, kx + 8, 89);
+
+                    doc.setFontSize(11);
+                    doc.setTextColor(...kpi.color);
+                    doc.text(kpi.val, kx + 8, 107);
+                });
+
+                // 3. Section 2: Category Breakdown & Visual Donut Chart (126 -> 280 pt)
+                doc.setFontSize(9.5);
+                doc.setTextColor(15, 23, 42);
+                doc.setFont('helvetica', 'bold');
+                doc.text('2. Revenue Distribution by Category & Visual Donut Breakdown', 30, 132);
+
+                const totalRevNum = Number(m.total_revenue || 1);
+                const catData = [];
+                if (currentData.category_sales) {
+                    for (const [cat, val] of Object.entries(currentData.category_sales)) {
+                        const share = ((val / totalRevNum) * 100).toFixed(1) + '%';
+                        catData.push([cat, `$${Number(val).toLocaleString(undefined, {minimumFractionDigits: 2})}`, share]);
+                    }
+                }
+
+                if (doc.autoTable) {
+                    doc.autoTable({
+                        startY: 140,
+                        head: [['Category', 'Revenue ($)', 'Share (%)']],
+                        body: catData,
+                        theme: 'grid',
+                        tableWidth: 260,
+                        headStyles: { fillColor: [2, 132, 199], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 },
+                        bodyStyles: { fontSize: 7.2, textColor: [30, 41, 59], cellPadding: 3.5 },
+                        alternateRowStyles: { fillColor: [248, 250, 252] },
+                        margin: { left: 30 }
+                    });
+                }
+
+                // Category Donut Chart Card (Right Side)
+                doc.setFillColor(17, 24, 39);
+                doc.setDrawColor(30, 41, 59);
+                doc.roundedRect(300, 140, 265, 125, 4, 4, 'FD');
+
+                if (catChartImg) {
+                    doc.addImage(catChartImg, 'PNG', 305, 142, 255, 121);
+                }
+
+                // 4. Section 3: RFM Customer Segmentation Matrix Table (282 -> 465 pt)
+                doc.setFontSize(9.5);
+                doc.setTextColor(15, 23, 42);
+                doc.setFont('helvetica', 'bold');
+                doc.text('3. RFM Customer Segmentation Matrix (Recency, Frequency, Monetary)', 30, 285);
+
+                const rfmData = [];
+                if (currentData.rfm_segments) {
+                    const strategies = {
+                        'Champions': 'VIP early access, high-tier loyalty perks & concierge rewards',
+                        'Loyal Customers': 'Cross-category upsells, loyalty points multipliers & discovery promos',
+                        'New / Promising': '14-day onboarding nurture email with 15% 2nd order discount',
+                        'At Risk': 'Personalized 90-day win-back offers & time-sensitive re-engagement vouchers',
+                        'Lost': 'Cost-effective re-engagement sequence or sunset list to protect domain'
+                    };
+                    for (const [seg, val] of Object.entries(currentData.rfm_segments)) {
+                        rfmData.push([
+                            seg,
+                            `${val.count} accounts`,
+                            `$${Number(val.revenue || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+                            strategies[seg] || 'Standard customer engagement'
+                        ]);
+                    }
+                }
+
+                if (doc.autoTable) {
+                    doc.autoTable({
+                        startY: 295,
+                        head: [['Customer Tier', 'Accounts', 'Monetary Value ($)', 'Strategic Action Plan']],
+                        body: rfmData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 },
+                        bodyStyles: { fontSize: 7.2, textColor: [30, 41, 59], cellPadding: 3.5 },
+                        alternateRowStyles: { fillColor: [248, 250, 252] },
+                        margin: { left: 30, right: 30 }
+                    });
+                }
+
+                // 5. Section 4: Executive Strategic Recommendations (475 -> 795 pt)
+                const recsStartY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 16 : 475;
+                doc.setFontSize(9.5);
+                doc.setTextColor(15, 23, 42);
+                doc.setFont('helvetica', 'bold');
+                doc.text('4. Executive Actionable Recommendations & Implementation Roadmap', 30, recsStartY);
+
+                const recBoxes = [
+                    {
+                        title: '1. Cross-Category Product Bundling & Basket Expansion:',
+                        desc: 'Electronics and Home & Kitchen generate over 65% of total sales. Creating curated cross-category bundle discounts (e.g., Smart Home starter packs) will accelerate SKU turnover and lift AOV above $300.',
+                        color: [2, 132, 199]
+                    },
+                    {
+                        title: '2. Q4 Supply Chain & Inventory Buffer Allocation:',
+                        desc: 'Historical metrics prove that November and December generate >35% of annual revenue. Supply chain purchase orders, carrier contracts, and warehouse staging must be locked in by August to prevent out-of-stock bottlenecks.',
+                        color: [5, 150, 105]
+                    },
+                    {
+                        title: '3. Subscription Replenishment Model for Consumables & Beauty:',
+                        desc: 'Beauty represents 5.6% of GMV despite strong product margins. Introducing an automated "Subscribe & Save" replenishment option (10% recurring discount) will establish predictable Monthly Recurring Revenue (MRR).',
+                        color: [217, 119, 6]
+                    },
+                    {
+                        title: '4. Automated Triggered Win-Back Campaigns for At-Risk Buyers:',
+                        desc: 'Deploy automated 90-day triggered workflows offering time-limited dynamic discounts to formerly high-frequency buyers before they transition into lost/dormant accounts.',
+                        color: [225, 29, 72]
+                    }
+                ];
+
+                let curRecY = recsStartY + 10;
+                recBoxes.forEach(rb => {
+                    doc.setFillColor(248, 250, 252);
+                    doc.setDrawColor(226, 232, 240);
+                    doc.roundedRect(30, curRecY, 535, 62, 3, 3, 'FD');
+
+                    doc.setFillColor(...rb.color);
+                    doc.rect(30, curRecY, 4, 62, 'F');
+
+                    doc.setFontSize(8);
+                    doc.setTextColor(...rb.color);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(rb.title, 42, curRecY + 14);
+
+                    doc.setFontSize(7.2);
+                    doc.setTextColor(51, 65, 85);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(rb.desc, 42, curRecY + 28, { maxWidth: 512 });
+
+                    curRecY += 68;
+                });
+
+                // Footer
+                doc.setFontSize(7);
+                doc.setTextColor(148, 163, 184);
+                doc.text('Confidential • E-Commerce Analytics Platform — Executive Report', 30, 820);
+                doc.text('Page 1 of 1', 535, 820);
+
+                // Save Document
+                doc.save('Executive_Sales_Analytics_Report.pdf');
+
+                if (btn) btn.innerHTML = originalText;
+            } catch (err) {
+                console.error('Error generating PDF:', err);
+                alert('Could not generate PDF: ' + err.message);
+                if (btn) btn.innerHTML = originalText;
+            }
         }
 
         window.addEventListener('DOMContentLoaded', initializePlatform);

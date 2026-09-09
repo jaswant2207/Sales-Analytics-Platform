@@ -79,8 +79,9 @@ Using SQL Common Table Expressions (CTEs) and window functions (`NTILE(5)`):
 | ⚠️ **At Risk / Attention** | `R <= 2, F >= 3, M >= 3` | Personalized win-back campaigns, limited-time offers |
 | 💤 **Lost Customers** | `R <= 2, F <= 2, M <= 2` | Re-engagement surveys, aggressive clearance promos |
 
-### 🔹 Phase 5: Interactive BI Dashboard
+### 🔹 Phase 5: Interactive BI Dashboard & On-Demand Reporting
 - **Web Dashboard**: Modern dark-mode UI with live charts for revenue trends, product revenue by category, and customer segment distribution.
+- **On-Demand Executive PDF Reporting**: Built-in 1-click exporter that compiles live KPI scorecards, RFM cohorts, and strategic recommendations into a downloadable PDF report.
 - **Power BI / Tableau Guide**: Step-by-step connection guide in [`bi_connection_guide.md`](./bi_connection_guide.md).
 
 ---
@@ -92,12 +93,13 @@ Using SQL Common Table Expressions (CTEs) and window functions (`NTILE(5)`):
 ├── generate_data.py          # Phase 1: Synthetic data generator with noise injection
 ├── etl_process.py            # Phase 2: Data cleaning, normalization, and star schema creation
 ├── load_to_dw.py             # Phase 2: Cloud warehouse ingestion (BigQuery / Redshift)
+├── export_data.py            # Phase 2: Warehouse aggregation & JSON data exporter
 ├── schema.sql                # Phase 3: Star schema DDL with partitioning & clustering
 ├── rfm_analysis.sql          # Phase 4: RFM segmentation calculation using SQL window functions
-├── dashboard.py              # Phase 5: Streamlit / Plotly live interactive dashboard
-├── dashboard.html            # Phase 5: Standalone executive BI web dashboard
+├── dashboard.py              # Phase 5: Production Python REST API & local web server
+├── index.html                # Phase 5: Executive BI Dashboard (with Live PDF & CSV Export)
 ├── bi_connection_guide.md    # Phase 5: Power BI & Tableau cloud warehouse connection manual
-├── DEPLOYMENT_GUIDE.md       # Deployment instructions (Vercel, Netlify, Render, Docker)
+├── DEPLOYMENT_GUIDE.md       # Cloud deployment instructions (Docker, Render, Vercel, Netlify)
 ├── Dockerfile                # Containerization setup
 ├── docker-compose.yml        # Multi-container local orchestration
 └── requirements.txt          # Python dependencies
@@ -109,8 +111,8 @@ Using SQL Common Table Expressions (CTEs) and window functions (`NTILE(5)`):
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/jaswant2207/Sales-Analytics-Platform.git
-cd Sales-Analytics-Platform
+git clone <repository-url>
+cd <repository-directory>
 ```
 
 ### 2. Install Dependencies
@@ -129,11 +131,11 @@ python etl_process.py
 
 ### 4. Launch the Dashboard
 ```bash
-# Option A: Run Streamlit Dashboard
-streamlit run dashboard.py
+# Option A: Run Local Python Analytics Server
+python dashboard.py
 
-# Option B: View static dashboard
-# Open dashboard.html in any web browser
+# Option B: Direct Browser View
+# Open index.html directly in any modern web browser
 ```
 
 ---
