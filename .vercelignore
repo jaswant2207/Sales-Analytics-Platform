@@ -1,4 +1,20 @@
+# Python scripts & requirements (prevents Vercel Python runtime build errors)
+*.py
+requirements.txt
+__pycache__/
+
+# Container & deployment configs for other platforms
 Dockerfile
 docker-compose.yml
+Procfile
+render.yaml
+railway.json
+
+# SQL & documentation
+*.sql
+*.md
+
+# IDE & Version Control
 .git
 .vscode
+

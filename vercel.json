@@ -1,7 +1,4 @@
 {
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": ".",
   "cleanUrls": true,
   "rewrites": [
     { "source": "/api/data", "destination": "/data.json" }
@@ -15,3 +12,4 @@
     }
   ]
 }
+
