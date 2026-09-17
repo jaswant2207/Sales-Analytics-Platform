@@ -47,8 +47,11 @@ def parse_dates(series):
     return pd.to_datetime(series.apply(convert_val), errors='coerce')
 
 def main():
-    # Define file paths
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # Define file paths (support running from root or scripts/)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    base_dir = project_root if os.path.exists(os.path.join(project_root, 'index.html')) else script_dir
+
     customers_path = os.path.join(base_dir, 'customers.csv')
     products_path = os.path.join(base_dir, 'products.csv')
     orders_path = os.path.join(base_dir, 'orders.csv')
@@ -62,7 +65,7 @@ def main():
     for path in [customers_path, products_path, orders_path]:
         if not os.path.exists(path):
             print(f"Error: Required file not found at {path}")
-            print("Please run 'python generate_data.py' first to generate the raw datasets.")
+            print("Please run 'python scripts/generate_data.py' first to generate the raw datasets.")
             sys.exit(1)
 
     print("=" * 60)

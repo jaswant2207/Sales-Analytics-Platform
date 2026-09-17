@@ -1,7 +1,9 @@
 # Python scripts & requirements (prevents Vercel Python runtime build errors)
+scripts/
 *.py
 requirements.txt
 __pycache__/
+
 
 # Container & deployment configs for other platforms
 Dockerfile

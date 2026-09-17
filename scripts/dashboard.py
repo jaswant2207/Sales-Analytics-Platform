@@ -14,6 +14,14 @@ import webbrowser
 import signal
 import mimetypes
 
+# Resolve directories (support running from root or scripts/)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+DIRECTORY = PROJECT_ROOT if os.path.exists(os.path.join(PROJECT_ROOT, 'index.html')) else SCRIPT_DIR
+
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
 # Dynamic port assignment for cloud platforms (Render, Railway, Heroku, Cloud Run)
 def get_server_port():
     port_env = os.environ.get('PORT', os.environ.get('SERVER_PORT', '8000')).strip()
@@ -24,7 +32,6 @@ def get_server_port():
 
 PORT = get_server_port()
 HOST = os.environ.get('HOST', '0.0.0.0')
-DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 def ensure_warehouse_data():
     """Ensures warehouse CSV datasets are ready. If missing, auto-generates them."""
@@ -120,7 +127,7 @@ class DashboardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            error_data = {'error': 'Cleaned warehouse files not found. Please run python etl_process.py.'}
+            error_data = {'error': 'Cleaned warehouse files not found. Please run python scripts/etl_process.py.'}
             self.wfile.write(json.dumps(error_data).encode('utf-8'))
             return
 
@@ -251,9 +258,6 @@ def main():
             import pandas as pd
         except Exception as e:
             print(f"[WARNING] Could not auto-install dependencies: {e}")
-
-    # Change to script directory to resolve paths correctly
-    os.chdir(DIRECTORY)
 
     # Ensure warehouse data files are prepared
     ensure_warehouse_data()

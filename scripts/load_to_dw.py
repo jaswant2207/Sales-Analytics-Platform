@@ -139,10 +139,8 @@ def load_to_redshift(s3_client, redshift_data_client, config, table_name, local_
     sql_script = f"""
     -- Create Target Table if it does not exist
     {ddl}
-
     -- Create Temp Table for staging
     CREATE TEMP TABLE {staging_table} (LIKE {table_name});
-
     -- COPY from S3 to Staging
     COPY {staging_table}
     FROM '{s3_uri}'
@@ -151,16 +149,13 @@ def load_to_redshift(s3_client, redshift_data_client, config, table_name, local_
     IGNOREHEADER 1
     DATEFORMAT 'auto'
     TIMEFORMAT 'auto';
-
     -- Deduplicate: Delete existing records in target matching staging keys
     DELETE FROM {table_name}
     USING {staging_table} S
     WHERE {join_condition.replace('T.', f'{table_name}.')};
-
     -- Insert all rows from staging to target
     INSERT INTO {table_name}
     SELECT * FROM {staging_table};
-
     -- Drop staging table
     DROP TABLE {staging_table};
     """
@@ -190,7 +185,9 @@ def load_to_redshift(s3_client, redshift_data_client, config, table_name, local_
 # MAIN WAREHOUSE LOADING ORCHESTRATOR
 # -------------------------------------------------------------
 def main():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    base_dir = project_root if os.path.exists(os.path.join(project_root, 'index.html')) else script_dir
     
     # Table definitions
     tables = {
@@ -244,7 +241,7 @@ def main():
     for t_name, t_info in tables.items():
         if not os.path.exists(t_info['csv']):
             print(f"Error: Cleaned data file not found: {t_info['csv']}")
-            print("Please run 'python etl_process.py' first.")
+            print("Please run 'python scripts/etl_process.py' first.")
             sys.exit(1)
 
     print("=" * 60)

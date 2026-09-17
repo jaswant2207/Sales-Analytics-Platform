@@ -9,7 +9,12 @@ import json
 import os
 import sys
 
-DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+DIRECTORY = PROJECT_ROOT if os.path.exists(os.path.join(PROJECT_ROOT, 'index.html')) else SCRIPT_DIR
+
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
 
 def ensure_data_exists():
     """Checks if cleaned star schema files exist, otherwise runs generator and ETL."""

@@ -90,19 +90,23 @@ Using SQL Common Table Expressions (CTEs) and window functions (`NTILE(5)`):
 
 ```
 .
-├── generate_data.py          # Phase 1: Synthetic data generator with noise injection
-├── etl_process.py            # Phase 2: Data cleaning, normalization, and star schema creation
-├── load_to_dw.py             # Phase 2: Cloud warehouse ingestion (BigQuery / Redshift)
-├── export_data.py            # Phase 2: Warehouse aggregation & JSON data exporter
+├── index.html                # Phase 5: Executive BI Dashboard (with Live PDF & CSV Export)
+├── dashboard.html            # Static dashboard mirror
+├── data.json                 # Pre-aggregated analytics snapshot
+├── vercel.json               # Vercel static deployment & CORS routing
+├── netlify.toml              # Netlify configuration
 ├── schema.sql                # Phase 3: Star schema DDL with partitioning & clustering
 ├── rfm_analysis.sql          # Phase 4: RFM segmentation calculation using SQL window functions
-├── dashboard.py              # Phase 5: Production Python REST API & local web server
-├── index.html                # Phase 5: Executive BI Dashboard (with Live PDF & CSV Export)
 ├── bi_connection_guide.md    # Phase 5: Power BI & Tableau cloud warehouse connection manual
-├── DEPLOYMENT_GUIDE.md       # Cloud deployment instructions (Docker, Render, Vercel, Netlify)
 ├── Dockerfile                # Containerization setup
 ├── docker-compose.yml        # Multi-container local orchestration
-└── requirements.txt          # Python dependencies
+└── scripts/                  # Python Data Engineering & Server Backend
+    ├── requirements.txt      # Python dependencies
+    ├── generate_data.py      # Phase 1: Synthetic data generator with noise injection
+    ├── etl_process.py        # Phase 2: Data cleaning, normalization, and star schema creation
+    ├── load_to_dw.py         # Phase 2: Cloud warehouse ingestion (BigQuery / Redshift)
+    ├── export_data.py        # Phase 2: Warehouse aggregation & JSON data exporter
+    └── dashboard.py          # Phase 5: Production Python REST API & local web server
 ```
 
 ---
@@ -117,22 +121,22 @@ cd <repository-directory>
 
 ### 2. Install Dependencies
 ```bash
-pip install -r requirements.txt
+pip install -r scripts/requirements.txt
 ```
 
 ### 3. Run Data Generation & ETL
 ```bash
 # Generate raw datasets (customers.csv, products.csv, orders.csv)
-python generate_data.py
+python scripts/generate_data.py
 
 # Run ETL transformations (outputs dim_customers.csv, dim_products.csv, fact_sales.csv)
-python etl_process.py
+python scripts/etl_process.py
 ```
 
 ### 4. Launch the Dashboard
 ```bash
 # Option A: Run Local Python Analytics Server
-python dashboard.py
+python scripts/dashboard.py
 
 # Option B: Direct Browser View
 # Open index.html directly in any modern web browser

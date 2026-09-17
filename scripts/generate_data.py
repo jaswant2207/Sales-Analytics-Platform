@@ -54,8 +54,11 @@ def main():
 
     print("Generating messy e-commerce sales data...")
 
-    # Define paths
-    output_dir = os.path.dirname(os.path.abspath(__file__))
+    # Define paths (support running from root or scripts/)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    output_dir = project_root if os.path.exists(os.path.join(project_root, 'index.html')) else script_dir
+
     customers_file = os.path.join(output_dir, 'customers.csv')
     products_file = os.path.join(output_dir, 'products.csv')
     orders_file = os.path.join(output_dir, 'orders.csv')
