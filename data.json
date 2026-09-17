@@ -90,6 +90,13 @@
     "2026-03": 9,
     "2026-04": 1
   },
+  "rfm_segments": {
+    "Champions": { "count": 142, "revenue": 894520.50 },
+    "Loyal Customers": { "count": 186, "revenue": 768210.25 },
+    "New / Promising": { "count": 68, "revenue": 215430.80 },
+    "At Risk": { "count": 54, "revenue": 194850.20 },
+    "Lost": { "count": 42, "revenue": 112627.50 }
+  },
   "recent_transactions": [
     {
       "order_id": "O07712",
