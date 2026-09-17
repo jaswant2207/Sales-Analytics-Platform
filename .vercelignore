@@ -1,8 +1,7 @@
-# Python scripts & requirements (prevents Vercel Python runtime build errors)
+# Heavy local ETL pipelines (handled in scripts directory)
 scripts/
-*.py
-requirements.txt
 __pycache__/
+
 
 
 # Container & deployment configs for other platforms
